@@ -15,7 +15,7 @@ from pathlib import Path
 
 from llm_client import APIClient, LLMError, parse_usage
 
-MODEL = os.getenv("MODEL", "gpt-4o-mini")
+MODEL = os.getenv("MODEL", "gpt-4o")  # default model if not set in .env
 TEMPERATURE = 0.6
 MAX_TOKENS = 800
 MAX_HISTORY_TURNS = 10  # keep the last N user/assistant pairs to cap token cost

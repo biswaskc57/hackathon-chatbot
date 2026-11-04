@@ -20,6 +20,7 @@ from llm_client import APIClient, LLMError, parse_usage
 MODEL_OPTIONS = [m.strip() for m in os.getenv("MODELS", "gpt-4o").split(",") if m.strip()]
 OTHER_MODEL = "Other (type a name)…"
 
+
 DEFAULTS = {
     "set_model": os.getenv("MODEL", "gpt-4o") if os.getenv("MODEL", "gpt-4o") in MODEL_OPTIONS else MODEL_OPTIONS[0],
     "set_custom_model": "",
