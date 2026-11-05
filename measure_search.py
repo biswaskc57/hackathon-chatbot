@@ -8,7 +8,7 @@ import csv
 import sys
 from pathlib import Path
 
-from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, BM25Index, load_corpus
+from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, DEFAULT_GLOSSARY, BM25Index, load_corpus, load_glossary
 
 DATA = Path(__file__).resolve().parent / "data"
 
@@ -33,11 +33,14 @@ def main(aids_path=DEFAULT_AIDS):
     versions = {"raw": BM25Index(load_corpus(DEFAULT_CORPUS))}
     if Path(aids_path).exists():
         versions["enriched"] = BM25Index(load_corpus(DEFAULT_CORPUS, aids_path))
+        glossary = load_glossary(DEFAULT_GLOSSARY)
+        if glossary:
+            versions[f"+glossary({len(glossary)})"] = BM25Index(load_corpus(DEFAULT_CORPUS, aids_path), glossary=glossary)
     else:
         print(f"(no {aids_path.name} yet: run make_search_questions.py on the Mac first)")
     for name, index in versions.items():
-        print(f"{name:9} golden : {run(index, golden, lambda r: r['question'], True)}")
-        print(f"{name:9} tickets: {run(index, tickets, lambda r: r['subject'] + chr(10) * 2 + r['body'], False)}")
+        print(f"{name:14} golden : {run(index, golden, lambda r: r['question'], True)}")
+        print(f"{name:14} tickets: {run(index, tickets, lambda r: r['subject'] + chr(10) * 2 + r['body'], False)}")
 
 
 if __name__ == "__main__":

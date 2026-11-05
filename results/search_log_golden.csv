@@ -1,0 +1,21 @@
+question_id,question,expected_passages,raw_best_rank,raw_top3,enriched_best_rank,enriched_top3,raw_hit@1,raw_hit@3,raw_hit@5,enriched_hit@1,enriched_hit@3,enriched_hit@5
+Q01,"Which picture mode is the easiest on the eyes, and where do I select it?",p0001,2,p0046|p0001|p0226,2,p0046|p0001|p0226,n,y,y,n,y,y
+Q02,How do I change the picture size?,p0020,2,p0019|p0020|p0118,2,p0019|p0020|p0118,n,y,y,n,y,y
+Q03,How do I choose which speakers the TV uses for sound?,p0051,1,p0051|p0014|p0092,1,p0051|p0030|p0014,y,y,y,y,y,y
+Q04,My screen is black but I can still hear the sound. What should I do?,p0223,1,p0223|p0092|p0014,1,p0223|p0197|p0232,y,y,y,y,y,y
+Q05,Sports and action scenes look blurry. How can I improve this?,p0226|p0106,1,p0226|p0166|p0117,1,p0226|p0166|p0117,y,y,y,y,y,y
+Q06,Can I update software through internet and through USB device?,p0177,1,p0177|p0233|p0007,1,p0177|p0233|p0007,y,y,y,y,y,y
+Q07,How to update apps automatically?,p0045,2,p0007|p0045|p0245,2,p0007|p0045|p0245,n,y,y,n,y,y
+Q08,How can I check the current network and Internet status?,p0043,2,p0042|p0043|p0229,1,p0043|p0042|p0041,n,y,y,y,y,y
+Q09,An app asks me to sign in again every time I open it. How do I stop that?,p0231,1,p0231|p0232|p0152,1,p0231|p0152|p0232,y,y,y,y,y,y
+Q10,The TV keeps showing the software update message even after I updated. What can I do?,p0233,1,p0233|p0007|p0177,1,p0233|p0007|p0177,y,y,y,y,y,y
+Q11,How do I switch the TV to my Blu-ray player?,p0006,1,p0006|p0101|p0053,1,p0006|p0053|p0101,y,y,y,y,y,y
+Q12,How can I use my TV remote to control my soundbar or set-top box?,p0160|p0161|p0219,6,p0109|p0119|p0183,6,p0119|p0109|p0214,n,n,n,n,n,n
+Q13,How do I connect a Bluetooth keyboard to the TV?,p0176,1,p0176|p0241|p0179,1,p0176|p0241|p0146,y,y,y,y,y,y
+Q14,The remote control does nothing when I press the buttons.,p0236|p0107|p0108,4,p0169|p0103|p0143,2,p0169|p0107|p0103,n,n,y,n,y,y
+Q15,I switch to the HDMI input of my game console but the screen stays black.,p0239,1,p0239|p0006|p0029,2,p0006|p0239|p0029,y,y,y,n,y,y
+Q16,Where do I set a sleep timer and how long can it be?,p0121,1,p0121|p0244|p0067,1,p0121|p0244|p0067,y,y,y,y,y,y
+Q17,How do I increase the font size?,p0192,1,p0192|p0087|p0019,1,p0192|p0101|p0087,y,y,y,y,y,y
+Q18,How do I check signal info and strength?,p0074,1,p0074|p0246|p0203,1,p0074|p0246|p0203,y,y,y,y,y,y
+Q19,My TV turns itself on at night. Why?,p0243,1,p0243|p0244|p0025,1,p0243|p0121|p0244,y,y,y,y,y,y
+Q20,The TV says Weak or No Signal and some channels are missing.,p0246|p0117,1,p0246|p0117|p0203,1,p0246|p0117|p0074,y,y,y,y,y,y

@@ -130,8 +130,9 @@ def main() -> None:
 
     index = None
     if args.corpus != "none":
-        from retrieval import BM25Index, load_corpus
-        index = BM25Index(load_corpus(CORPUS_FILES[args.corpus], AIDS_FILES.get(args.corpus)))
+        from retrieval import BM25Index, load_corpus, load_glossary
+        index = BM25Index(load_corpus(CORPUS_FILES[args.corpus], AIDS_FILES.get(args.corpus)),
+                          glossary=load_glossary() if args.corpus == "enriched" else None)  # step 3 = questions + glossary
 
     def retrieve(question: str) -> list:
         return [p for p, _ in index.search(question, k=TOP_K)] if index else []

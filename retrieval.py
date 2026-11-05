@@ -6,6 +6,7 @@ count more than common ones (e.g. "TV"), and long passages are not favoured just
 Used by assistant.py (answers) and the evaluation scripts (hit@k). No extra packages needed.
 """
 
+import csv
 import json
 import math
 import re
@@ -16,6 +17,7 @@ from pathlib import Path
 DEFAULT_CORPUS = Path(__file__).resolve().parent / "data" / "corpus.jsonl"
 DEFAULT_TOP_K = 3   # passages sent with each question
 DEFAULT_AIDS = Path(__file__).resolve().parent / "data" / "search_questions.jsonl"  # customer-style questions (search only)
+DEFAULT_GLOSSARY = Path(__file__).resolve().parent / "data" / "glossary.csv"  # customer words -> manual words (search only)
 
 # Very common words that say nothing about the topic. "not", "no" are kept: they matter in symptoms.
 STOPWORDS = set("""a an and are as at be but by can do does for from how i if in into is it its
@@ -48,9 +50,31 @@ def tokenize(text: str) -> list[str]:
     return [w for w in words if w not in STOPWORDS]
 
 
+def load_glossary(path: Path = DEFAULT_GLOSSARY) -> list[tuple]:
+    """Rows of glossary.csv -> [(regex matching any customer term, manual terms to add)]."""
+    if not Path(path).exists():
+        return []
+    entries = []
+    with open(path, encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            terms = [t.strip().lower() for t in (row.get("customer_terms") or "").split(";") if t.strip()]
+            manual = (row.get("manual_terms") or "").strip()
+            if terms and manual:
+                pattern = re.compile(r"\b(" + "|".join(re.escape(t) for t in terms) + r")\b", re.I)
+                entries.append((pattern, manual))
+    return entries
+
+
+def expand_query(query: str, glossary: list[tuple]) -> str:
+    """Add the manual's words for every glossary term found. The customer's own words are kept."""
+    extra = [manual for pattern, manual in glossary if pattern.search(query)]
+    return query + (" " + " ".join(extra) if extra else "")
+
+
 class BM25Index:
-    def __init__(self, passages: list[Passage], k1: float = 1.5, b: float = 0.75):
+    def __init__(self, passages: list[Passage], k1: float = 1.5, b: float = 0.75, glossary: list[tuple] | None = None):
         self.passages = passages
+        self.glossary = glossary or []
         self.k1, self.b = k1, b
         self.docs = [Counter(tokenize(p.search_text)) for p in passages]
         self.lengths = [sum(d.values()) for d in self.docs]
@@ -60,7 +84,7 @@ class BM25Index:
         self.idf = {w: math.log(1 + (n - df + 0.5) / (df + 0.5)) for w, df in doc_freq.items()}
 
     def search(self, query: str, k: int = 3) -> list[tuple[Passage, float]]:
-        terms = tokenize(query)
+        terms = tokenize(expand_query(query, self.glossary))
         scores = []
         for p, doc, length in zip(self.passages, self.docs, self.lengths):
             score = 0.0
