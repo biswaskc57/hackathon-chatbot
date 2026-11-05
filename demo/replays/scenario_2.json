@@ -1,0 +1,47 @@
+{
+  "scenario": "2",
+  "label": "Catches a mistake",
+  "message": "Scheduled recording did not start. I scheduled a recording of a film but nothing was recorded. I had a USB stick connected. What went wrong?",
+  "answer": "The issue might be related to the type of USB storage or other settings. Here are some checks you can perform:\n\n1. **USB Storage**: A USB stick is not supported for recording. You need to connect a USB hard drive with at least 100 MB of free space. [p0203]\n\n2. **Signal Strength**: Check the signal strength in **Settings > Support > Self Diagnosis > Signal Information**. A weak signal can prevent recording. [p0203]\n\n3. **Clock Settings**: Ensure the clock is set correctly in **Settings > General > System Manager > Time > Clock**. [p0203], [p0128]\n\nPlease try these steps and let me know if they resolve the issue. If the problem persists, I recommend contacting a human colleague for further assistance.",
+  "retrieved_ids": [
+    "p0203",
+    "p0102",
+    "p0128"
+  ],
+  "trace": [
+    {
+      "name": "PII masked",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Router",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Search",
+      "status": "passed",
+      "reason": "3 passages: p0203, p0102, p0128"
+    },
+    {
+      "name": "Gate",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Menu paths",
+      "status": "off",
+      "reason": "Not built yet"
+    }
+  ],
+  "usage": {
+    "input_tokens": 1346,
+    "output_tokens": 164,
+    "total_tokens": 1510
+  },
+  "preset": "demo",
+  "settings_fingerprint": "81e156eb",
+  "model": "gpt-4o",
+  "recorded": "2026-11-05T14:24:26+00:00"
+}

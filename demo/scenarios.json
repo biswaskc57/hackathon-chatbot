@@ -1,0 +1,18 @@
+{
+  "_note": "Demo scenarios for the sidebar (app.py). 'requires': settings that must be on in the active preset; until then the button shows 'coming soon'. Messages are written by the team, except scenario 2 (organisers' ticket TV-0027).",
+  "scenarios": [
+    {"id": "1", "label": "How-to with sources", "page": "chat", "requires": ["use_manual"],
+     "message": "Which picture mode is easiest on the eyes?"},
+    {"id": "2", "label": "Catches a mistake", "page": "chat", "requires": ["use_manual"],
+     "message": "Scheduled recording did not start. I scheduled a recording of a film but nothing was recorded. I had a USB stick connected. What went wrong?"},
+    {"id": "3", "label": "Knows its limits", "page": "chat", "requires": ["router", "tickets"],
+     "message": "My TV screen got a crack after eight months. Is that covered by the warranty?"},
+    {"id": "4", "label": "Refuses to invent", "page": "chat", "requires": ["menu_check"],
+     "message": "Where is Settings > Picture > Eye Comfort Mode? I want to switch it on."},
+    {"id": "5", "label": "Privacy", "page": "chat", "requires": ["pii_mask"],
+     "message": "My TV (serial number ST55-88421X) won't connect to Wi-Fi. You can reach me at jan.kowalski@example.com or +49 151 2345 6789."},
+    {"id": "6", "label": "E-mail", "page": "email", "requires": [],
+     "email": {"subject": "Sleep timer, subtitles and a broken remote",
+               "body": "Hello,\n\nI have two questions about my Smart Tech TV. Can the TV switch itself off after an hour when I fall asleep? And how do I turn on subtitles?\n\nAlso, the remote stopped working after a fall last week. Can I get a replacement under warranty? My order number is SO-448812.\n\nBest regards,\nAnna Schmidt\nanna.schmidt@example.com"}}
+  ]
+}

@@ -1,0 +1,4 @@
+# Demo look (R8): light theme for the projector, one accent colour. Colour elsewhere only for meaning.
+[theme]
+base = "light"
+primaryColor = "#1f5fbf"

@@ -1,0 +1,47 @@
+{
+  "scenario": "1",
+  "label": "How-to with sources",
+  "message": "Which picture mode is easiest on the eyes?",
+  "answer": "The \"Natural\" picture mode is designed to reduce eye strain for a comfortable viewing experience. You can select it by going to:\n\n**Settings > Picture > Picture Mode > Natural**  \n\nThis function may not be supported depending on your TV model. [p0001]",
+  "retrieved_ids": [
+    "p0046",
+    "p0001",
+    "p0226"
+  ],
+  "trace": [
+    {
+      "name": "PII masked",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Router",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Search",
+      "status": "passed",
+      "reason": "3 passages: p0046, p0001, p0226"
+    },
+    {
+      "name": "Gate",
+      "status": "off",
+      "reason": "Not built yet"
+    },
+    {
+      "name": "Menu paths",
+      "status": "off",
+      "reason": "Not built yet"
+    }
+  ],
+  "usage": {
+    "input_tokens": 943,
+    "output_tokens": 54,
+    "total_tokens": 997
+  },
+  "preset": "demo",
+  "settings_fingerprint": "81e156eb",
+  "model": "gpt-4o",
+  "recorded": "2026-11-05T14:24:41+00:00"
+}
