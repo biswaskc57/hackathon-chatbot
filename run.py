@@ -61,7 +61,7 @@ def main() -> int:
         print("No virtual environment yet. Run first: python3 run.py build")
         return 1
     if task in NEEDS_ENV_FILE and not (ROOT / ".env").exists():
-        print("No .env file found. Copy .env.example to .env and fill in CLIENT_ID, CLIENT_SECRET and MODEL.")
+        print("No .env file found. Copy .env.example to .env and fill in CLIENT_ID and CLIENT_SECRET.")
         return 1
 
     command = TASKS[task][1].format(py=f'"{VENV_PY}"')

@@ -1,7 +1,7 @@
-"""The conversation engine shared by chat.py, app.py and (later) the evaluation scripts.
+"""The conversation engine shared by chat.py, app.py and eval_run.py.
 
-One turn = build the messages, call the gateway, measure tokens and time, write one log line.
-Retrieval (RAG) will be added here, so every front-end gets it at once.
+One turn = search the manual, build the messages, call the gateway, measure tokens and time,
+write one log line. Every front end gets the same retrieval and logging from here.
 """
 
 import json
@@ -75,12 +75,14 @@ def run_turn(
     source: str,
     passages: list | None = None,
     use_corpus: bool = True,
+    corpus: str = "raw",
 ) -> TurnResult:
     """Answer one user message. Raises LLMError if the gateway call fails (nothing is logged then).
 
     By default the manual is searched for the current message and the top passages are sent with it.
     passages: give them yourself (the evaluation does), or leave None to search here.
     use_corpus=False: no manual at all (evaluation step 1 only).
+    corpus: the label written to the log when passages are used ("raw" or "enriched").
     """
     if passages is None and use_corpus:
         passages = [p for p, _ in get_index().search(user_text, k=DEFAULT_TOP_K)]
@@ -109,7 +111,7 @@ def run_turn(
         "max_tokens": settings.max_tokens,
         "history_turns": settings.history_turns,
         "extra_params": settings.extra_params,
-        "corpus": "none" if passages is None else "raw",
+        "corpus": "none" if passages is None else corpus,
         "retrieved_ids": [p.id for p in passages] if passages is not None else None,
         "user_chars": len(user_text),       # lengths only: no customer text in the log
         "answer_chars": len(answer),

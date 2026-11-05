@@ -2,7 +2,7 @@
 
     step 1: --corpus none   the assistant without the manual (GPT-4o's own knowledge)
     step 2: --corpus raw    the original corpus, keyword search (BM25), top 3 passages
-    step 3: --corpus enriched  (later: the enriched corpus, same search and settings)
+    step 3: --corpus enriched  same passages; search also uses data/search_questions.jsonl
 
 Every step uses the SAME settings (preset "eval", same fingerprint), so the corpus is the only
 thing that changes. Each question is a fresh conversation, sent through assistant.run_turn,
@@ -27,14 +27,14 @@ from pathlib import Path
 from assistant import LLMError, build_messages, run_turn
 from config import load_settings
 from llm_client import APIClient, fold_system_messages
+from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, DEFAULT_TOP_K, BM25Index, load_corpus
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 RESULTS = ROOT / "results"
 
-CORPUS_FILES = {"raw": DATA / "corpus.jsonl", "enriched": DATA / "corpus.jsonl"}
-AIDS_FILES = {"enriched": DATA / "search_questions.jsonl"}   # step 3: same passages + customer-style questions for search
-from retrieval import DEFAULT_TOP_K
+# raw and enriched use the same passages; enriched also searches the customer-style questions (step 3).
+AIDS_FILES = {"enriched": DEFAULT_AIDS}
 TOP_K = DEFAULT_TOP_K
 
 # The golden set scores one complete answer, so evaluation asks for one. Same in every step.
@@ -130,8 +130,7 @@ def main() -> None:
 
     index = None
     if args.corpus != "none":
-        from retrieval import BM25Index, load_corpus
-        index = BM25Index(load_corpus(CORPUS_FILES[args.corpus], AIDS_FILES.get(args.corpus)))
+        index = BM25Index(load_corpus(DEFAULT_CORPUS, AIDS_FILES.get(args.corpus)))
 
     def retrieve(question: str) -> list:
         return [p for p, _ in index.search(question, k=TOP_K)] if index else []
@@ -173,7 +172,7 @@ def main() -> None:
                                   conversation_id=f"{run_id}-{q['id']}", turn=1,
                                   source=f"eval-corpus-{args.corpus}-{args.set}",
                                   passages=passages if index else None,
-                                  use_corpus=index is not None)
+                                  use_corpus=index is not None, corpus=args.corpus)
             except LLMError as exc:
                 print(f"\nStopped at {q['id']}: {exc}\n{i - 1} answers saved in {out_file}")
                 sys.exit(1)
