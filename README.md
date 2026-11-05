@@ -40,7 +40,8 @@ Not `run.py` tasks yet; run them with the project's Python:
 
 | Command | What it does |
 |---|---|
-| `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched, golden set and tickets (tickets as totals only) |
+| `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched vs enriched + glossary, golden set and tickets (tickets as totals only) |
+| `.venv/bin/python test_glossary.py` | Checks each glossary entry on our own test queries: does it help where it should, and not hurt elsewhere? Seconds, no model calls |
 | `.venv/bin/python eval_run.py --corpus raw --set golden --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
 | `.venv/bin/python eval_run.py --corpus none\|raw\|enriched --set golden\|tickets [--limit N]` | Run an evaluation step and write the results to `results/` |
 | `.venv/bin/python make_search_questions.py [--limit N]` | Generate customer-style search questions for each passage (needs the gateway; resumes where it stopped) |
@@ -76,8 +77,9 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 | `chat.py` | Command-line chat (`--preset`, `--list-presets`) |
 | `app.py` | Streamlit web UI with presets, a settings panel and session statistics |
 | `run.py` | npm-style task runner |
-| `eval_run.py` | Evaluation for every comparison step (`--corpus none`, `raw` or `enriched`) |
+| `eval_run.py` | Evaluation for every comparison step (`--corpus none`, `raw` or `enriched`; `enriched` = generated questions + glossary) |
 | `measure_search.py` | Search hit rates, no model calls |
+| `test_glossary.py` | Per-entry glossary check against `data/glossary_tests.csv` |
 | `make_search_questions.py` | Generates `data/search_questions.jsonl` |
 | `eval_step1.py` | First step-1 script, replaced by `eval_run.py`; to be removed |
 | `data/` | The organisers' files plus our generated search questions (see Data and licences) |
@@ -93,7 +95,7 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 4. The conversation history keeps the customer's **plain messages**; earlier passages are not resent, so token cost does not grow with every turn.
 5. If `data/corpus.jsonl` is **missing**, the assistant stops with a clear error rather than answering without the manual.
 
-Known limits: the search looks only at the current message, so short follow-ups ("still nothing") search poorly; BM25 matches words, not meaning. The UI uses the raw corpus; the enriched search (passages plus generated questions) is used in the evaluation, and switching the UI to it is an open team decision.
+Known limits: the search looks only at the current message, so short follow-ups ("still nothing") search poorly; BM25 matches words, not meaning. The UI uses the raw corpus; the enriched search (passages plus generated questions plus glossary) is used in the evaluation, and switching the UI to it is an open team decision.
 
 ## UI settings
 
@@ -130,12 +132,13 @@ We compare three versions of the assistant in which **only the corpus changes**:
 |---|---|---|
 | 1 | `none` | No manual: GPT-4o's own knowledge |
 | 2 | `raw` | The 3 best passages from the original corpus |
-| 3 | `enriched` | The same, but the search also uses the generated customer-style questions |
+| 3 | `enriched` | The same, but the search also uses the generated customer-style questions and the glossary |
 
 - **Fixed settings:** every run uses the `eval` settings defined in `eval_run.py` on top of the `baseline` preset: temperature 0, max 800 tokens, no conversation memory, and the baseline prompt plus one line asking for all relevant steps in one answer. Fingerprint `a9a0f383`. If the prompt in `settings.json` changes, the fingerprint changes and earlier steps must be rerun.
-- **Test sets:** `golden_seed.csv` (20 questions) is the development set, run as often as needed. `tickets_tv.csv` (40) is held out: run once per step, only after the prompt is frozen, and never inspect ticket misses or use tickets to write prompts, questions or glossary entries. Our own out-of-scope set (warranty, repairs, returns, orders, accessories, prices) is still to be written.
+- **Test sets:** `golden_seed.csv` (20 questions) is the development set, run as often as needed. `tickets_tv.csv` (40) is held out: run once per step, only after the prompt is frozen, and never inspect ticket misses or use tickets to write prompts, questions or glossary entries. Our own out-of-scope set (warranty, repairs, returns, orders, accessories, prices) is still to be written. Note: the first glossary entries were partly based on tickets, so ticket results that include the glossary are not a blind test (see Glossary below).
 - **Results files:** each run writes `results/corpus-<step>_<set>_<time>.csv` with one row per question (retrieved ids, search hit, cited ids, hints for menu paths and bold terms not found in the manual, tokens) and empty columns for scoring by hand: correct / partly / wrong / hand-over, and invented content y/n. The hints are pointers for the scorer, not verdicts. A `_settings.json` file records the exact settings.
 - **Customer-style questions:** `data/search_questions.jsonl` holds 5 questions per passage, generated by GPT-4o from the passage text only (never from the tickets or golden questions). They are used for search only and never shown to customers. One-off cost: 105,972 input and 16,045 output tokens, about $0.43 at list price. Spot-check them and set `"reviewed": true` on the ones checked.
+- **Glossary:** `data/glossary.csv` maps words customers use to the manual's words (e.g. set-top box, cable box → Anynet+ (HDMI-CEC), Universal Remote). When a customer term appears in a message, the manual terms are **added** to the search query; the customer's words are kept, and nothing is shown to the customer. Columns: `customer_terms` (several separated by `;`, whole words, any case), `manual_terms`, `source`, `note`, `not_for` (the reason in words) and `unless` (words that stop the entry firing, e.g. `bluetooth` for soundbar, so a Bluetooth soundbar question is not pulled towards Anynet+). Rules learned so far: map only **specific** customer terms to **rare** manual terms (`Smart Tech`, `remote` or `external device` appear in 58 to 79 passages and add noise), and test every entry with `test_glossary.py` for at least one query it should help and one with the same word but a different meaning that it must not hurt. Sources must be the corpus, the golden set or general knowledge, never the tickets. The current 5 entries include ticket-based ones: re-ground them, or use a fresh blind test set written by a teammate who has not read the tickets.
 
 ### Results so far (4 to 5 November 2026)
 
@@ -145,12 +148,16 @@ We compare three versions of the assistant in which **only the corpus changes**:
 | Golden, enriched | 14/20 | 19/20 | 19/20 |
 | Tickets, raw | 26/40 | 33/40 | 35/40 |
 | Tickets, enriched | 27/40 | 35/40 | 38/40 |
+| Golden, enriched + glossary (5 entries) | 16/20 | 20/20 | 20/20 |
+| Tickets, enriched + glossary (5 entries; not blind) | 27/40 | 34/40 | 38/40 |
+
+Per-question search ranks for the golden set (raw vs enriched) are in `results/search_log_golden.csv`. Totals can hide swaps: enrichment moved Q08 up to first place and Q15 down to second.
 
 Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule not yet agreed): 13 correct, 5 correct with small additions from outside the manual, 1 hand-over (Q12), 1 wrong (Q14). In step 1 the model invents features that are not in the manual, such as an "Eye Comfort" picture mode. Cost per answer at list price: about $0.003 in step 1 and $0.0045 in step 2. These are small samples: they illustrate the effect and support no statistical claims.
 
 ## Roadmap
 
-1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), searching follow-ups together with the previous question, and deciding whether the UI uses the enriched search.
+1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions, glossary started (5 entries, with `unless` words). Next: refine the glossary (drop common words such as `Smart Tech`; the home-screen entry still makes its own test worse), searching follow-ups together with the previous question, and deciding whether the UI uses the enriched search.
 2. **Scope router**, not started: in scope, out of scope (warranty, orders, prices) or unclear. Also pending: the prompt's scope wording (hand over when answering needs the customer's own account, order or contract data).
 3. **Evidence gate and grounding check**, not started: answer only when the manual supports it, otherwise hand over. Tests showed that a keyword-score threshold alone is not enough.
 4. **Guided troubleshooting**: the prompt gives one or two checks at a time; search on follow-up messages still needs improving.
@@ -161,4 +168,5 @@ Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule n
 
 - `data/corpus.jsonl` (204 passages), `data/golden_seed.csv` (20 questions) and `data/tickets_tv.csv` (40 tickets) are the organisers' files. The corpus is based on RAGBench (`emanual` subset), CC BY 4.0, modified by the hackathon organisers. The golden questions, tickets and client fact sheet were written by the organisers for this event.
 - `data/search_questions.jsonl` was generated by us with GPT-4o from the corpus passages.
+- `data/glossary.csv` and `data/glossary_tests.csv` (test queries for each glossary entry, written from passage titles) are ours.
 - Housekeeping: `_to_delete/` (a leftover test log) and `eval_step1.py` can be removed.
