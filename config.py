@@ -49,6 +49,13 @@ class Settings:
     follow_up_search: bool = True    # weak follow-ups ("still nothing") are searched with earlier messages
     preset: str = "custom"           # name only; not part of the fingerprint
 
+    def __post_init__(self):
+        # Same value, same fingerprint: settings.json may say 1 where a UI slider gives 1.0.
+        self.temperature = float(self.temperature)
+        self.max_tokens = int(self.max_tokens)
+        self.history_turns = int(self.history_turns)
+        self.top_k = int(self.top_k)
+
     def search_label(self) -> str:
         """Short name of the search, for logs and file names: none, raw, enriched, raw+glossary, enriched+glossary."""
         if not self.use_manual:

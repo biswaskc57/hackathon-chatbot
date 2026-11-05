@@ -127,8 +127,9 @@ with st.sidebar:
     st.slider("Temperature", 0.0, 1.0, step=0.05, key="set_temperature",
               help="Lower = more consistent, factual answers. 0–0.2 is best for support.")
     st.number_input("Max answer length (tokens)", min_value=50, max_value=4000, step=50, key="set_max_tokens")
-    st.slider("Conversation memory (turns)", 1, 20, key="set_history_turns",
-              help="How many earlier question/answer pairs are resent. More = better context, more tokens.")
+    st.slider("Conversation memory (turns)", 0, 20, key="set_history_turns",
+              help="How many earlier question/answer pairs are resent. More = better context, more tokens. "
+                   "0 = every message is answered on its own (used by the email-draft preset and the evaluation).")
 
     with st.expander("System prompt"):
         st.text_area("Instructions for the assistant", key="set_system_prompt", height=300)
