@@ -1,11 +1,12 @@
 """Search quality only (no model calls, free, seconds): is the right passage in the top 1 / 3 / 5?
 
-Run:  python3 measure_search.py              raw corpus vs enriched (if data/search_questions.jsonl exists)
-Golden misses are listed (development set). Tickets are reported as totals only, so nobody tunes on them.
+Run:  python3 measure_search.py              golden set: raw vs enriched vs enriched + glossary
+      python3 measure_search.py --tickets    ALSO the blind ticket set: only for the final run, never while tuning
+Golden misses are listed (development set). Tickets are a blind test (project brief), so they are off by default.
 """
 
+import argparse
 import csv
-import sys
 from pathlib import Path
 
 from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, DEFAULT_GLOSSARY, BM25Index, load_corpus, load_glossary
@@ -27,21 +28,29 @@ def run(index, rows, question_of, list_misses):
     return line + (f"   not in top 3: {', '.join(misses)}" if list_misses and misses else "")
 
 
-def main(aids_path=DEFAULT_AIDS):
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--aids", type=Path, default=DEFAULT_AIDS, help="customer-style questions file")
+    parser.add_argument("--tickets", action="store_true", help="also report the blind ticket set (final run only)")
+    args = parser.parse_args()
+
     golden = list(csv.DictReader(open(DATA / "golden_seed.csv", encoding="utf-8")))
-    tickets = list(csv.DictReader(open(DATA / "tickets_tv.csv", encoding="utf-8")))
     versions = {"raw": BM25Index(load_corpus(DEFAULT_CORPUS))}
-    if Path(aids_path).exists():
-        versions["enriched"] = BM25Index(load_corpus(DEFAULT_CORPUS, aids_path))
+    if args.aids.exists():
+        versions["enriched"] = BM25Index(load_corpus(DEFAULT_CORPUS, args.aids))
         glossary = load_glossary(DEFAULT_GLOSSARY)
         if glossary:
-            versions[f"+glossary({len(glossary)})"] = BM25Index(load_corpus(DEFAULT_CORPUS, aids_path), glossary=glossary)
+            versions[f"+glossary({len(glossary)})"] = BM25Index(load_corpus(DEFAULT_CORPUS, args.aids), glossary=glossary)
     else:
-        print(f"(no {aids_path.name} yet: run make_search_questions.py on the Mac first)")
+        print(f"(no {args.aids.name} yet: run make_search_questions.py on the Mac first)")
+    tickets = list(csv.DictReader(open(DATA / "tickets_tv.csv", encoding="utf-8"))) if args.tickets else []
+    if tickets:
+        print("BLIND TICKET RUN: report these numbers once; do not change search settings because of them.\n")
     for name, index in versions.items():
         print(f"{name:14} golden : {run(index, golden, lambda r: r['question'], True)}")
-        print(f"{name:14} tickets: {run(index, tickets, lambda r: r['subject'] + chr(10) * 2 + r['body'], False)}")
+        if tickets:
+            print(f"{name:14} tickets: {run(index, tickets, lambda r: r['subject'] + chr(10) * 2 + r['body'], False)}")
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_AIDS)
+    main()

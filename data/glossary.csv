@@ -1,6 +1,2 @@
 customer_terms,manual_terms,source,note,not_for
 soundbar; set-top box; cable box; home theater,Anynet+ (HDMI-CEC); Universal Remote,golden Q12,"Customers name the device; the manual names the feature that controls it. Device-to-feature link, not a synonym: Anynet+ first, Universal Remote for devices without Anynet+. 'external device' left out: it appears 68 times in the corpus, too common.",Bluetooth or Wi-Fi soundbars and speakers
-remote; TV remote; my remote,Smart Tech Remote,TV-0003; TV-0037,The corpus also covers the standard remote control; general remote passages apply to both.,"general remote troubleshooting such as batteries or range (TV-0010, p0237)"
-home screen,Smart Tech Hub,TV-0024; TV-0031,,USB hub (TV-0016: a USB adapter; gold passage p0240 is about USB storage)
-voice search; microphone button,Smart Tech Voice,TV-0028,,
-subtitles; captions,Captions,TV-0025,"captions is the manual term, kept for completeness.","subtitles on video files played from USB (p0087, p0220)"
