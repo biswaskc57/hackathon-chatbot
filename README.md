@@ -87,13 +87,13 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 
 ## How an answer is made
 
-1. The customer's **current message** is searched in the manual (`retrieval.py`, BM25 keyword search). The 3 best passages are taken.
+1. The customer's **current message** is searched in the manual (`retrieval.py`, BM25 keyword search). The 3 best passages are taken. If the message matches the manual poorly (best score below 8.5, e.g. "I tried that but it didn't help"), it is treated as a follow-up and searched together with the customer's last 2 earlier messages. A new question scores higher and is searched on its own, so a change of topic is not mixed with the old one.
 2. The passages go into the **current user message, before the question**, with instructions: answer only from these passages, read menu paths without arrows ("Settings Picture Picture Mode") as Settings > Picture > Picture Mode, cite the passage ids, and if the passages do not answer the question, say so and offer a human colleague. The system prompt itself is unchanged.
 3. If **no passage matches**, the model is told so explicitly, so that it hands over instead of answering from its own knowledge.
 4. The conversation history keeps the customer's **plain messages**; earlier passages are not resent, so token cost does not grow with every turn.
 5. If `data/corpus.jsonl` is **missing**, the assistant stops with a clear error rather than answering without the manual.
 
-Known limits: the search looks only at the current message, so short follow-ups ("still nothing") search poorly; BM25 matches words, not meaning. The UI uses the raw corpus; the enriched search (passages plus generated questions) is used in the evaluation, and switching the UI to it is an open team decision.
+Known limits: BM25 matches words, not meaning. The follow-up threshold (8.5) was set on the golden questions and 10 follow-up phrases: real questions scored 9.8 or more, follow-ups 7.5 or less. A follow-up with strong manual words of its own ("still no sound from the soundbar") is searched on its own. The UI uses the raw corpus; the enriched search (passages plus generated questions) is used in the evaluation, and switching the UI to it is an open team decision.
 
 ## UI settings
 
@@ -116,7 +116,7 @@ The sidebar changes these settings live; each change applies from the next messa
 
 ## Logging and privacy
 
-- Every answer is logged to `logs/conversation_log.jsonl`: source (`ui`, `cli` or `eval-...`), preset and settings fingerprint, model and settings, `corpus` (`none`, `raw` or `enriched`), `retrieved_ids` (the passage ids sent to the model), input and output tokens, and response time. The token log is the basis for the cost-per-answer figure in the business case.
+- Every answer is logged to `logs/conversation_log.jsonl`: source (`ui`, `cli` or `eval-...`), preset and settings fingerprint, model and settings, `corpus` (`none`, `raw` or `enriched`), `retrieved_ids` (the passage ids sent to the model), `search_used_earlier` (true when a follow-up was searched with earlier messages), input and output tokens, and response time. The token log is the basis for the cost-per-answer figure in the business case.
 - Passage ids are not personal data, so logging them is safe.
 - The log stores **only the length** of messages, never the customer's text.
 - The assistant tells users it is an AI (EU AI Act) and asks them not to share personal data (GDPR).
@@ -150,10 +150,10 @@ Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule n
 
 ## Roadmap
 
-1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), searching follow-ups together with the previous question, and deciding whether the UI uses the enriched search.
+1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Follow-ups are searched together with earlier messages (5 November). Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), and deciding whether the UI uses the enriched search.
 2. **Scope router**, not started: in scope, out of scope (warranty, orders, prices) or unclear. Also pending: the prompt's scope wording (hand over when answering needs the customer's own account, order or contract data).
 3. **Evidence gate and grounding check**, not started: answer only when the manual supports it, otherwise hand over. Tests showed that a keyword-score threshold alone is not enough.
-4. **Guided troubleshooting**: the prompt gives one or two checks at a time; search on follow-up messages still needs improving.
+4. **Guided troubleshooting**: the prompt gives one or two checks at a time; follow-up messages are now searched with the earlier question (in 17 of 20 test conversations the assistant kept troubleshooting instead of handing over).
 5. **Hand-over to an agent** with a ticket summary; **agent-assist view** for hotline agents. Not started.
 6. **Evaluation**: pipeline done; steps 1 and 2 run on the golden set, step 3 search measured. Still to do: agree the scoring rule, freeze the prompt, write the out-of-scope set, run the tickets once per step.
 

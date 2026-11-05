@@ -15,6 +15,27 @@ not statistically proven ones.
 | 3 | `gpt-5` | `{"temperature": 1, "reasoningEffort": "minimal"}` | 18/20 correct, but it adds its own knowledge: in the enriched run it says the manual does not cover Q12 and then gives an Anynet+ path "on many Smart Tech TVs" anyway; in the raw run it invented a pairing-code step (Q13). Longest answers (156 words). Grounding problems are harder to fix with the prompt than style. |
 | ref | `gpt-4o` | eval default | Current baseline. Raw run: answered Q14 from its own knowledge. With the enriched search the Q14 miss disappears and it is as clean as Claude on this set, so its weak point only shows when the search misses. |
 
+## Cost per answer
+
+List prices from third-party price pages (November 2026, not confirmed against the providers' own pages or the
+gateway's billing). Tokens are the measured averages per golden answer: enriched run for the top four, raw run
+for the others. Output tokens include hidden reasoning tokens.
+
+| Model | $ per 1M input / output | Avg. tokens in / out | Cost per answer | Per 1,000 answers | Quality on the golden set |
+|---|---|---|---|---|---|
+| gpt-5-nano | 0.05 / 0.40 | 1103 / 143 | $0.0001 | $0.11 | Not scored in full; irrelevant steps on Q14 |
+| gemini-3.1-flash-lite | 0.25 / 1.50 | 1091 / 154 | $0.0005 | $0.50 | Not scored in full; Q14 misdiagnosed, answered the account question |
+| **gemini-3.5-flash** | 1.50 / 9.00 | 1057 / 200 | **$0.0034** | **$3.39** | 18 correct, 0 invented (enriched) |
+| **gpt-5** (minimal) | 1.25 / 10.00 | 1069 / 229 | **$0.0036** | **$3.63** | 18 correct, 1 invented (enriched) |
+| gpt-4o | 2.50 / 10.00 | 1046 / 176 | $0.0044 | $4.38 | 18 correct, 0 invented (enriched); legacy model |
+| **claude-opus-4-8** | 5.00 / 25.00 | 1650 / 223 | **$0.0138** | **$13.80** | 18 correct, 0 invented in both runs |
+
+The model is a very small part of the cost per contact (EUR 7.37 today, target EUR 6.26). Even Claude Opus 4.8
+costs under 2 cents per answer. A wrong answer that brings the customer back costs a full contact, so Claude's
+extra ~$10 per 1,000 answers over Gemini 3.5 Flash pays for itself if it prevents about one or two repeat
+contacts per 1,000 answers. It avoided a guess on 1 of 20 questions in the raw run. The two cheapest models
+would save about $3 per 1,000 answers compared with Gemini 3.5 Flash, which does not justify weaker answers.
+
 ## Golden set (20 questions), raw search
 
 | Model | Correct | Hand-over | Wrong or invented | Median / max latency | Avg. input / output tokens | Avg. words |
