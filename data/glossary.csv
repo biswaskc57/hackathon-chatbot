@@ -1,2 +1,2 @@
-customer_terms,manual_terms,source,note,not_for
-soundbar; set-top box; cable box; home theater,Anynet+ (HDMI-CEC); Universal Remote,golden Q12,"Customers name the device; the manual names the feature that controls it. Device-to-feature link, not a synonym: Anynet+ first, Universal Remote for devices without Anynet+. 'external device' left out: it appears 68 times in the corpus, too common.",Bluetooth or Wi-Fi soundbars and speakers
+customer_terms,manual_terms,source,note,not_for,unless
+soundbar; set-top box; cable box; home theater,Anynet+ (HDMI-CEC); Universal Remote,golden Q12,"Customers name the device; the manual names the feature that controls it. Device-to-feature link, not a synonym: Anynet+ first, Universal Remote for devices without Anynet+. 'external device' left out: it appears 68 times in the corpus, too common.",Bluetooth or Wi-Fi soundbars and speakers,bluetooth; wireless; wi-fi
