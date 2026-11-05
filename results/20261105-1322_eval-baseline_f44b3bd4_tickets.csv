@@ -1,0 +1,636 @@
+id,category,kind,question,answer,reference_answer,must_include,expected_behaviour,source_passage_ids,retrieved_ids,retrieval_hit,cited_ids,unknown_menu_paths,unknown_bold_terms,input_tokens,output_tokens,latency_s,score (correct/partly/wrong/handover),invented_content (y/n),scorer,notes
+TV-0001,"Network, Apps & Software",how-to,"Reset all settings
+
+I want to restore my TV's settings to the factory defaults. Where do I do that?","To restore all settings on your Smart Tech TV to the factory defaults (excluding Internet and network settings), follow these steps:
+
+1. Go to **Settings > Support > Self Diagnosis > Reset**.
+2. Enter your security PIN when prompted (default is usually ""0000"" unless changed).
+3. Select **Yes** to confirm.
+
+The TV will reset, turn off, and then turn back on, displaying the Start Setup screen.
+
+For more details, refer to [p0025] and [p0127].",,,answer,p0025|p0127,p0025|p0127|p0027,y,p0025|p0127,,,809,104,2.28,,,,
+TV-0002,Picture & Sound,how-to,"Connect Bluetooth headphones
+
+How do I connect my Bluetooth headphones so I can watch TV at night without waking the family?","To connect your Bluetooth headphones to your Smart Tech TV, follow these steps:
+
+1. **Put your headphones in pairing mode** (refer to your headphone manual for instructions).
+2. On your TV, go to **Settings > Sound > Sound Output > Speaker List**.
+3. Select **Refresh** to search for available Bluetooth devices.
+4. When your headphones appear in the list, select them to pair and connect.
+
+If you want to use both the TV speakers and Bluetooth headphones at the same time (e.g., for someone with hearing impairments), you can enable **Multi-output Audio**:
+- Go to **Settings > General > Accessibility > Multi-output Audio** and turn it on. This allows you to adjust the volume of the headphones independently of the TV speakers.
+
+If you encounter issues during pairing, refer to troubleshooting steps in [p0241] and [p0228].
+
+Let me know if you need further assistance!",,,answer,p0145|p0241,p0241|p0146|p0228,y,p0241|p0228,,Put your headphones in pairing mode,989,187,5.32,,,,
+TV-0003,Connected Devices & Remote,how-to,"Pair a new remote
+
+I bought a spare remote. How do I pair it with my TV?","To pair your new Smart Tech Remote with your TV, follow these steps:
+
+1. Point the remote at the remote control sensor on the TV.
+2. Press and hold both pairing buttons on the remote simultaneously for 3 seconds or more.
+
+If the remote does not pair, ensure:
+- There are no objects blocking the sensor.
+- The remote is within 20 feet (6 m) of the TV.
+- The batteries are new and properly installed.
+
+If the issue persists, contact support for further assistance, as the remote may not be supported depending on the model or region [p0107], [p0236].",,,answer,p0107|p0108,p0236|p0237|p0107,y,p0107|p0236,,,919,125,2.76,,,,
+TV-0004,"Power, Setup & Viewing",troubleshooting,"TV does not turn on
+
+My TV does not turn on at all since this morning. I changed the batteries in the remote and it still does nothing. It is a present for my father's birthday tomorrow, please help.","Here are the steps to troubleshoot your TV not turning on:
+
+1. **Check the Power Connection**:
+   - Ensure the power cord is firmly plugged into both the TV and the wall outlet.
+   - Test the wall outlet with another device to confirm it is working.
+   - Avoid using extension cords or switched power strips for this test.
+
+2. **Test the TV Without the Remote**:
+   - Press the power button on the TV itself to rule out a remote issue.
+
+3. **Inspect the Status Light** (if your model has one):
+   - Check the status light on the front of the TV:
+     - If the light does not come on at all, or if it blinks and the TV does not start, proceed to the next step.
+
+4. **Power Cycle the TV**:
+   - Unplug the TV from the power outlet for 60 seconds.
+   - Plug it back in and press the power button on the TV.
+
+If these steps do not resolve the issue, the problem may require further assistance. Please contact a human support agent for additional help. [p0242]",,,answer,p0242,p0242|p0236|p0006,y,p0242,,Check the Power Connection | Inspect the Status Light | Power Cycle the TV | Test the TV Without the Remote,1035,224,4.67,,,,
+TV-0005,Picture & Sound,troubleshooting,"Voices do not match the lips
+
+I watch with Bluetooth headphones in the evening. After a few minutes the voices lag behind the picture and sometimes the sound drops out. Can I fix this?","The issue you are experiencing is likely caused by Bluetooth delay, distance, or interference. Here are the steps to try and fix it:
+
+1. **Reduce Distance and Remove Obstacles**: Move your Bluetooth headphones closer to the TV and ensure there are no obstacles like walls or partitions between them.
+
+2. **Eliminate Interference**: Turn off other devices that might interfere with the Bluetooth connection, such as a microwave oven or wireless LAN devices nearby.
+
+3. **Re-pair the Headphones**:
+   - Go to **Settings > Sound > Sound Output > Speaker List**.
+   - Select **Refresh** and pair your headphones again.
+
+4. **Alternative Solutions**:
+   - If the delay persists, consider using wired headphones (if your TV has a headphone jack).
+   - Alternatively, connect a soundbar to the TV using the optical or HDMI (ARC) output for better synchronization.
+
+If the problem continues or the TV does not list your Bluetooth headphones, contact support for further assistance. [p0228], [p0145], [p0241]",,,answer,p0228,p0228|p0145|p0241,y,p0228|p0145|p0241,,Alternative Solutions | Eliminate Interference | Re-pair the Headphones | Reduce Distance and Remove Obstacles,1052,216,3.51,,,,
+TV-0006,Picture & Sound,troubleshooting,"No sound from my soundbar
+
+I connected a new soundbar with an HDMI cable yesterday. The picture is fine but the soundbar plays nothing. The soundbar is switched on.","Here are the steps to troubleshoot your soundbar issue:
+
+1. **Check Sound Output Settings**:
+   - Go to **Settings > Sound > Sound Output**.
+   - Select **Receiver (HDMI)** if your soundbar is connected via HDMI. Ensure the correct device is selected.
+
+2. **Verify HDMI (ARC) Port**:
+   - Ensure the HDMI cable is connected to the **HDMI (ARC)** port on the TV.
+   - Confirm that your soundbar supports **HDMI (ARC)**. If it does not, use an optical cable instead.
+
+3. **Enable Anynet+ (HDMI-CEC)**:
+   - Go to **Settings > General > External Device Manager > Anynet+ (HDMI-CEC)**.
+   - Ensure **Anynet+ (HDMI-CEC)** is turned on.
+
+4. **Reconnect HDMI Cable**:
+   - Unplug the HDMI cable from both the TV and the soundbar.
+   - Reconnect the cable securely and select the soundbar again in the **Source** menu.
+
+If these steps do not resolve the issue, please let me know, or I can connect you with a human colleague for further assistance. [p0227]",,,answer,p0227,p0227|p0014|p0161,y,p0227,,Check Sound Output Settings | Enable Anynet+ (HDMI-CEC) | Reconnect HDMI Cable | Verify HDMI (ARC) Port,1334,246,2.66,,,,
+TV-0007,"Network, Apps & Software",troubleshooting,"Phone does not find TV
+
+I want to show my phone screen on the TV but the TV does not appear in the app. Both should be on Wi-Fi. We have a guest network at home, if that matters.","It seems the issue might be related to the network setup or device settings. Please follow these steps to resolve it:
+
+1. **Ensure Both Devices Are on the Same Network**:  
+   - Connect both your phone and the TV to the same Wi-Fi network. Avoid using a guest network, as it may block communication between devices. [p0234]
+
+2. **Restart Both Devices**:  
+   - Turn off your TV and phone, then turn them back on. [p0234], [p0005]
+
+3. **Check the TV Name**:  
+   - Go to **Settings > General > System Manager > Device Name** on your TV to confirm or set a recognizable name for the TV. [p0234], [p0005]
+
+4. **Enable Power On with Mobile**:  
+   - On the TV, go to **Settings > General > Network > Expert Settings > Power On with Mobile** and ensure this setting is enabled. [p0234], [p0129]
+
+5. **Check Router Settings**:  
+   - Log in to your router and disable any setting that isolates Wi-Fi devices from each other. This is often called ""AP Isolation"" or ""Client Isolation."" [p0234]
+
+6. **Try Again**:  
+   - Open the Smart Tech Home app on your phone, tap **Add Device**, and follow the instructions to connect. If prompted, enter the PIN displayed on the TV screen. [p0005]
+
+If the TV still does not appear in the app after these steps, the issue may require further assistance. Please contact a human colleague for support.",,,answer,p0234,p0234|p0005|p0129,y,p0234|p0005|p0129,Settings > General > System Manager > Device Name** on your TV to confirm or set a recognizable name for the TV,Check Router Settings | Enable Power On with Mobile | Ensure Both Devices Are on the Same Network | Restart Both Devices,903,331,6.08,,,,
+TV-0008,"Network, Apps & Software",how-to,"Turn on from my phone
+
+Is there a way to switch the TV on with my phone through the network?","Yes, you can turn on your Smart Tech TV using your phone if both devices are connected to the same network. Follow these steps:
+
+1. Go to **Settings > General > Network > Expert Settings > Power On with Mobile**.
+2. Turn on the **Power On with Mobile** option.
+
+Make sure your phone and TV are connected to the same Wi-Fi network (not a guest network). If you still have issues, restart both the TV and your phone. 
+
+For more details, see [p0129] and [p0234].",,,answer,p0129,p0234|p0129|p0243,y,p0129|p0234,,,936,111,2.52,,,,
+TV-0009,Picture & Sound,how-to,"Change sound mode
+
+Where do I change the sound mode? I want to try the Amplify mode.","To change the sound mode to Amplify, follow these steps:
+
+1. Go to **Settings > Sound > Sound Mode**.
+2. Select **Amplify** from the available options (Standard, Optimized, Amplify).
+
+This will adjust the sound mode to suit your preference. Note that this function may not be supported depending on your TV model. 
+
+For more details, refer to [p0002] and [p0067].",,,answer,p0002,p0002|p0067|p0068,y,p0002|p0067,,,2299,89,3.07,,,,
+TV-0010,Connected Devices & Remote,troubleshooting,"Remote reacts late
+
+My remote only works if I stand right in front of the TV, and sometimes a button press is missed. New batteries did not help. Is it broken?","Based on your description, the issue might be caused by radio interference, distance, or a pairing problem. Please try the following steps:
+
+1. **Check for interference**: Keep Wi-Fi routers, USB 3.0 drives, and similar devices away from the TV sensor.
+2. **Distance**: Ensure you are using the remote less than 20 feet (6 meters) from the TV and pointing it directly at the TV.
+3. **Re-pair the remote**: Point the remote at the TV sensor and press and hold both pairing buttons for 3 seconds or more to pair it again.
+
+If the issue persists, gently clean the buttons with a dry cloth in case only specific buttons are failing. If none of these steps resolve the problem, please contact support for further assistance. [p0237]",,,answer,p0237,p0237|p0242|p0236,y,p0237,,Check for interference | Re-pair the remote,1029,165,2.66,,,,
+TV-0011,"Power, Setup & Viewing",how-to,"Black and white screen option
+
+I want the TV to show everything in grayscale for a family member who finds colours hard to read. Where do I find that?","To set your Smart Tech TV to display everything in black and white (grayscale), follow these steps:
+
+1. Go to **Settings > General > Accessibility > Grayscale**.
+2. Turn **Grayscale** on.
+
+This will change the TV screen to black and white, which can help sharpen blurred edges caused by colors. Note that when Grayscale is on, some Accessibility menus may not be available. Also, this feature may not be supported on all models or in all geographical areas. 
+
+If you encounter any issues, let me know, or I can connect you with a human colleague for further assistance. [p0105]",,,answer,p0105,p0080|p0105|p0034,y,p0105,,,1219,128,2.05,,,,
+TV-0012,"Network, Apps & Software",troubleshooting,"5 GHz network not listed
+
+My router has two networks, a normal one and one with 5G at the end, but the TV only shows the normal one. Streaming is slow on it. How do I get the faster one?","To troubleshoot why your 5 GHz network is not listed, follow these steps:
+
+1. **Check Router Settings**:
+   - Open your router settings and confirm that the 5 GHz band is turned on.
+   - Ensure the 5 GHz network has its own name (e.g., with ""5G"" at the end).
+
+2. **Set a Fixed Channel**:
+   - In the router settings, assign a fixed channel for the 5 GHz network between 36 and 48. Some TVs cannot detect networks on automatic or higher channels.
+
+3. **Refresh Network List**:
+   - Move the TV closer to the router to improve signal strength.
+   - On the TV, go to **Settings > General > Network > Open Network Settings**, then select **Refresh**.
+
+4. **Check TV Compatibility**:
+   - If the 5 GHz network still does not appear, your TV model may not support 5 GHz Wi-Fi. In this case, you can either:
+     - Use the 2.4 GHz network.
+     - Connect the TV to the router using a LAN cable for a more stable connection.
+
+If these steps do not resolve the issue, let me know, and I can hand you over to a human colleague for further assistance. [p0230]",,,answer,p0230,p0230|p0229|p0224,y,p0230,,Check Router Settings | Check TV Compatibility | Refresh Network List | Set a Fixed Channel,1079,260,3.07,,,,
+TV-0013,Picture & Sound,troubleshooting,"Brightness changes by itself
+
+The picture gets darker and brighter on its own, mostly in dark films. I did not change anything. Is the TV broken?","The issue you described is likely caused by energy-saving features or settings that adjust the brightness automatically. Your TV is probably not broken. Follow these steps to troubleshoot and fix the issue:
+
+1. **Check Energy-Saving Features**:
+   - Go to **Settings > General > Eco Solution**.
+   - Turn off the following settings one by one and observe the picture after each change:
+     - **Ambient Light Detection**
+     - **Power Saving Mode**
+     - **Motion Lighting**
+
+2. **Check the Video Cable**:
+   - Ensure the video cable is firmly connected.
+   - Test another input or cable to rule out connection issues.
+
+3. **Manually Adjust Brightness**:
+   - If the issue persists, go to **Settings > Picture > Expert Settings > Backlight** and manually set the brightness to your preference.
+
+If the picture still flickers or dims on every input with all energy-saving functions turned off, the issue may require further assistance. Please contact a human support agent for additional help. [p0010], [p0225]",,,answer,p0225,p0010|p0225|p0012,y,p0010|p0225,,Check Energy-Saving Features | Check the Video Cable | Manually Adjust Brightness,1144,214,4.3,,,,
+TV-0014,"Power, Setup & Viewing",how-to,"Invert colours
+
+How can I invert the screen colours? A family member finds the text easier to read that way.","To invert the screen colors on your Smart Tech TV, follow these steps:
+
+1. Go to **Settings > General > Accessibility > Color Inversion**.
+2. Turn **Color Inversion** on.
+
+Note: When Color Inversion is enabled, some Accessibility menus may not be available. This feature may not be supported on all models or in all geographical areas. [p0047]",,,answer,p0047,p0047|p0091|p0080,y,p0047,,,831,78,1.76,,,,
+TV-0015,Connected Devices & Remote,how-to,"Name the HDMI inputs
+
+I have three devices on the TV and I cannot tell the inputs apart. Can I give each input its own name?","Yes, you can rename the HDMI inputs on your Smart Tech TV to make them easier to identify. Follow these steps:
+
+1. Move the focus to the connected external device (e.g., the HDMI input you want to rename).
+2. Press the **up directional button** on your remote.
+3. Select **Edit** from the available options.
+4. Rename the port with the name of the input device or any desired name.
+
+This will help you distinguish between your devices. If you want, you can also add the input to the Home Screen for quick access by selecting **Add to Home**.
+
+For more details, refer to [p0215].",,,answer,p0215,p0215|p0005|p0234,y,p0215,,,1046,132,2.75,,,,
+TV-0016,Connected Devices & Remote,troubleshooting,"USB hard drive not found
+
+I connected my external hard drive through a USB hub but the TV does not show it. A small flash drive works. Why?","The issue is likely caused by the use of a USB hub, which is not supported by Smart Tech TVs. Here are the steps to resolve the problem:
+
+1. **Direct Connection**: Connect the external hard drive directly to the TV's USB port. USB hubs are not supported, and extension cables can also cause issues. [p0240], [p0185]
+
+2. **Use the Correct USB Port**: If your TV has a dedicated USB (HDD) port, connect the external hard drive to that port. [p0240], [p0185]
+
+3. **Power Supply**: Ensure the external hard drive has its own power adapter, as the TV may not provide enough power for the drive. [p0240], [p0185]
+
+4. **File System Compatibility**: Check that the hard drive is formatted in a supported file system (FAT, exFAT, or NTFS). [p0185]
+
+If the issue persists after following these steps, try another USB port or a different external hard drive. If no USB device is recognized on any port, contact support for further assistance. [p0240]",,,answer,p0240,p0240|p0185|p0203,y,p0240|p0185,,Direct Connection | File System Compatibility | Power Supply | Use the Correct USB Port,1206,235,5.24,,,,
+TV-0017,Connected Devices & Remote,troubleshooting,"Laptop shows Not Supported Mode
+
+I connected my laptop with an HDMI cable and the TV shows Not Supported Mode. What does that mean and what can I do?","The ""Not Supported Mode"" message means that the resolution or signal from your laptop is not compatible with the TV. Here are the steps to resolve this issue:
+
+1. **Set the Laptop's Output Resolution**:  
+   Adjust the resolution on your laptop to one that the TV supports. Check your laptop's display settings and select a standard resolution like 1920x1080 (Full HD) or 1280x720 (HD), which are commonly supported by most TVs.
+
+2. **Check the HDMI Input Selection**:  
+   On your TV, press the **Source** button on the remote and ensure the correct HDMI input (e.g., HDMI 1, HDMI 2) is selected.
+
+3. **Verify Audio Settings (if no sound)**:  
+   - If you're using an HDMI connection, go to your laptop's audio settings and select the TV as the audio output device.  
+   - If you're using an HDMI-to-DVI cable, note that this does not transmit audio. In this case, connect external speakers to your laptop's audio output.
+
+4. **Check the Cable and Ports**:  
+   Ensure the HDMI cable is securely connected at both ends. If the issue persists, try a different HDMI cable or port on the TV.
+
+If the problem continues after these steps, contact support for further assistance. [p0155]",,,answer,p0155,p0155|p0239|p0116,y,p0155,,Check the Cable and Ports | Check the HDMI Input Selection | Set the Laptop's Output Resolution | Verify Audio Settings (if no sound),1330,275,4.79,,,,
+TV-0018,Picture & Sound,troubleshooting,"Green tint on the picture
+
+There is a green tint on the whole screen. I changed a few picture settings last week to try a film mode. How do I get back to normal?","To fix the green tint on your TV screen, follow these steps:
+
+1. **Run a Picture Test**:
+   - Go to **Settings > Support > Self Diagnosis > Start Picture Test**.
+   - If the test picture looks fine, the issue is with the connected device or its cable. Check the video cable connections and try another HDMI port.
+   - If the test picture also shows a green tint, proceed to the next step.
+
+2. **Reset Picture Settings**:
+   - Go to **Settings > Picture > Expert Settings > Reset Picture**.
+   - This will return all picture settings to their default values.
+
+3. **Optional Adjustments** (if needed after resetting):
+   - If the picture is still not satisfactory, you can fine-tune settings like **Backlight**, **Brightness**, **Contrast**, or **Color** under **Settings > Picture > Expert Settings**.
+
+If the issue persists after these steps, contact support for further assistance. [p0046], [p0091]",,,answer,p0091,p0046|p0091|p0020,y,p0046|p0091,,Optional Adjustments | Reset Picture Settings | Run a Picture Test,1070,204,3.48,,,,
+TV-0019,Connected Devices & Remote,how-to,"Use a USB keyboard
+
+I would like to use a normal USB keyboard for typing searches. Do I just plug it in? Does a mouse work too?","Yes, you can use a USB keyboard for typing searches. Here’s how:
+
+1. Plug the USB keyboard into the TV's USB port.  
+2. The keyboard will be ready to use for typing.  
+
+If you want to use a USB mouse:  
+- Plug the mouse into the USB port.  
+- Note: The mouse will only work within the Internet app.  
+
+For additional settings or troubleshooting, you can go to:  
+**Settings > General > External Device Manager > Input Device Manager**.  
+
+References: [p0178], [p0179]",,,answer,p0178,p0178|p0179|p0241,y,p0178|p0179,,,786,116,3.38,,,,
+TV-0020,Picture & Sound,troubleshooting,"Vertical line on screen
+
+A thin vertical line appeared on the left side of my screen. It is visible on every input, also in the menu. I cleaned the screen with a dry cloth. What can I do?","Based on your description, the vertical line is visible on every input and in the menu, which suggests it may be a panel defect. Here are the steps to confirm and address the issue:
+
+1. **Run a Picture Test**:  
+   Go to **Settings > Support > Self Diagnosis > Start Picture Test**.  
+   - If the line is visible in the test picture, it is likely a panel defect.  
+   - If the line is not visible in the test picture, the issue may be with a connected device or cable.
+
+2. **Check Cables and Ports**:  
+   - Ensure all video cables are fully inserted at both ends.  
+   - Try connecting the device to a different HDMI port.  
+
+3. **If the Line Persists**:  
+   A panel defect cannot be repaired by the user. Note the location of the line and go to **Settings > Support > Request Support** to contact Smart Tech support for further assistance.  
+
+Do not press on the screen, as this can cause additional damage.  
+
+Source: [p0224]",,,answer,p0224,p0224|p0091|p0034,y,p0224,Settings > Support > Request Support** to contact Smart Tech support for further assistance,Check Cables and Ports | If the Line Persists | Run a Picture Test,1466,218,7.27,,,,
+TV-0021,"Power, Setup & Viewing",how-to,"Favourite channels
+
+How can I make a list of my favourite channels, so that I do not have to scroll through all of them?","To create a list of your favorite channels on your Smart Tech TV, follow these steps:
+
+1. Press the button on your remote to open **Smart Tech Hub**.
+2. Use the **left or right directional buttons** to move to **Live TV**.
+3. Press the **up directional button** to move to the top row, then press the **right directional button** to move to **Channel List**, and press the **Select button**.
+4. In the **Channel List**, press the **right directional button** to move to the **Category List**.
+5. Use the **up and down directional buttons** to highlight **Favorites** (e.g., Favorites 1, Favorites 2, etc.), and press the **Select button**.
+6. To add channels to a Favorites list, navigate to the desired channel in the **All Channels** list, highlight it, and press the appropriate button (e.g., **Add to Favorites**) if available on your model.
+
+Once you’ve added channels to a Favorites list, you can easily switch to that list to view only your favorite channels.
+
+Note: Some options may vary depending on your TV model and geographical area. [p0064], [p0154]",,,answer,p0065,p0064|p0246|p0154,n,p0064|p0154,,Add to Favorites,1297,249,4.53,,,,
+TV-0022,"Network, Apps & Software",troubleshooting,"TV is very slow
+
+The menu reacts after several seconds and sometimes the TV freezes for a moment when I open apps. It used to be fast. I have a lot of apps installed.","The issue you described matches the symptoms in the manual for a slow or freezing TV. Here are the steps to troubleshoot and fix the problem:
+
+1. **Wait for a minute**: The TV might be busy with an update or scan.  
+2. **Delete unused apps**: Go to *APPS* and remove apps you no longer use to free up storage.  
+3. **Check for software updates**: Go to *Settings > Support > Software Update* and install any available updates.  
+4. **Power cycle the TV**: Unplug the TV from the power outlet for 60 seconds, then plug it back in.  
+5. **Reset Smart Tech Hub**: If the problem persists, go to *Settings > Support > Self Diagnosis > Reset Smart Tech Hub*. Note that this will delete account information and apps, and you will need your PIN.  
+6. **Factory reset**: As a last resort, go to *Settings > Support > Self Diagnosis > Reset*. This will reset all settings (except network settings) to default, and you will need to set up the TV again.
+
+If the TV is still slow after these steps, contact support for further assistance. [p0235]",,,answer,p0235,p0235|p0232|p0245,y,p0235,,Check for software updates | Power cycle the TV | Wait for a minute,1059,247,3.45,,,,
+TV-0023,"Power, Setup & Viewing",troubleshooting,"TV switches off alone
+
+The TV turns off after a few hours while I am watching, without warning. I do not think I set a timer. What could cause this?","The issue may be caused by a timer, an energy-saving function, or overheating. Here are the steps to check and resolve the problem:
+
+1. **Check Timer Settings**:
+   - Go to **Settings > General > System Manager > Time**.
+   - Turn off **Sleep Timer** and **Off Timer**.
+
+2. **Check Energy-Saving Settings**:
+   - Go to **Settings > General > Eco Solution**.
+   - Turn off **Auto Power Off**, which switches the TV off after a period of inactivity.
+
+3. **Ensure Proper Ventilation**:
+   - Make sure the TV's vents are not blocked and that the TV is not placed in a closed cabinet, as overheating can cause it to shut down.
+
+4. **Check HDMI-CEC Settings**:
+   - If you have devices connected via **Anynet+ (HDMI-CEC)**, they might be turning off the TV when they power down. Disconnect or adjust the settings of those devices to test.
+
+If the TV continues to switch off and none of these settings are active, please contact a human colleague for further assistance. [p0244]",,,answer,p0010|p0244,p0244|p0121|p0010,y,p0244,,Check Energy-Saving Settings | Check HDMI-CEC Settings | Check Timer Settings | Ensure Proper Ventilation,1002,230,6.45,,,,
+TV-0024,"Network, Apps & Software",troubleshooting,"App closes by itself
+
+The video app on my TV closes and sends me back to the home screen after a minute. Other apps are fine. I already restarted the TV once.","Here are the steps to troubleshoot the issue of the video app closing by itself:
+
+1. **Close and reopen the app**: Open the app again from Smart Tech Hub.  
+2. **Update the app**: Go to **APPS**, find the app, and update it.  
+3. **Free up storage**: Delete apps you do not use to free up storage space.  
+4. **Check network connection**: Go to **Settings > General > Network > Network Status** to ensure the TV is connected to the Internet.  
+5. **Reinstall the app**: Unplug the TV for 60 seconds, plug it back in, and then delete and reinstall the app.  
+6. **Reset Smart Tech Hub**: If the issue persists, go to **Settings > Support > Self Diagnosis > Reset Smart Tech Hub**. Note that this will delete account information and installed apps.
+
+If the problem continues after these steps, contact the app provider for further assistance, as the issue may be specific to the app. [p0232], [p0044]",,,answer,p0232,p0232|p0044|p0005,y,p0232|p0044,Settings > General > Network > Network Status** to ensure the TV is connected to the Internet,Check network connection | Close and reopen the app | Free up storage | Reinstall the app,1022,220,4.71,,,,
+TV-0025,"Power, Setup & Viewing",how-to,"Show subtitles
+
+How do I turn on subtitles for digital channels and change how they look?","To turn on subtitles for digital channels and customize their appearance, follow these steps:
+
+1. **Turn on Subtitles**:
+   - Go to **Settings > General > Accessibility > Caption Settings**.
+   - Set **Caption** to **On**.
+
+2. **Customize Subtitle Appearance**:
+   - Go to **Settings > General > Accessibility > Caption Settings > Digital Caption Options**.
+   - Adjust options such as font color, background color, size, etc.
+   - Note: The foreground and background colors and opacity settings cannot be the same.
+
+These steps will enable subtitles for digital channels and allow you to modify their appearance. Let me know if you need further assistance! [p0101]",,,answer,p0101,p0101|p0220|p0087,y,p0101,,Customize Subtitle Appearance | Turn on Subtitles,1488,141,2.25,,,,
+TV-0026,"Power, Setup & Viewing",how-to,"Turn TV off automatically
+
+Can the TV switch itself off after a while when nobody is watching? Where is that setting?","Yes, the TV can switch itself off automatically after a set period of time. You can use the Sleep Timer or the Off Timer for this. Here’s how to set them up:
+
+1. **Sleep Timer**: Automatically shuts off the TV after a pre-set period of time (up to 180 minutes).
+   - Go to **Settings > General > System Manager > Time > Sleep Timer**.
+   - Set the desired time duration.
+
+2. **Off Timer**: Automatically shuts off the TV at a specific time.
+   - Go to **Settings > General > System Manager > Time > Off Timer**.
+   - Note: The Off Timer is only available if the Clock has been set.
+
+For more details, refer to [p0121]. Let me know if you need further assistance!",,,answer,p0010,p0244|p0121|p0007,n,p0121,,,924,161,2.83,,,,
+TV-0027,"Power, Setup & Viewing",troubleshooting,"Scheduled recording did not start
+
+I scheduled a recording of a film but nothing was recorded. I had a USB stick connected. What went wrong?","The issue could be due to several factors. Based on the manual, here are the possible causes and steps to resolve the problem:
+
+1. **USB Storage Compatibility**: 
+   - USB memory sticks are not supported for recording. You need to connect a USB hard drive instead.
+   - Ensure the USB hard drive has at least 100 MB of free space. If not, free up space or use another USB hard drive. [p0203]
+
+2. **Signal Strength**:
+   - A weak signal can prevent recording. Check the signal strength by going to:
+     `Settings > Support > Self Diagnosis > Signal Information`.
+   - If the signal is weak, try improving the antenna or signal source. [p0203]
+
+3. **Clock Settings**:
+   - The TV's clock must be set correctly for scheduled recordings to work. Check and adjust the clock in:
+     `Settings > General > System Manager > Time > Clock`. [p0203], [p0128]
+
+4. **Model or Region Limitation**:
+   - Recording and Timeshift functions may not be supported on all models or in all regions. If the function is not supported, it will not work. [p0203], [p0102], [p0128]
+
+If you have verified all the above and the issue persists, it may require further assistance. Please contact a human colleague for additional support.",,,answer,p0175|p0203,p0203|p0102|p0128,y,p0203|p0128|p0102,Settings > Support > Self Diagnosis > Signal Information` | Settings > General > System Manager > Time > Clock`,Clock Settings | Model or Region Limitation | USB Storage Compatibility,1368,284,4.84,,,,
+TV-0028,Connected Devices & Remote,troubleshooting,"Voice search does not answer
+
+I hold the microphone button and speak but nothing happens. The picture and apps work normally. How can I fix voice search?","Here are the steps to troubleshoot and fix the issue with voice search on your Smart Tech TV:
+
+1. **Check Internet Connection**:  
+   - Go to **Settings > General > Network > Network Status** to ensure the TV is connected to the Internet.  
+   - If not connected, reconnect to your Wi-Fi or wired network.
+
+2. **Verify Remote Compatibility**:  
+   - Ensure you are using a remote that has a microphone. Look for a microphone symbol on the remote.
+
+3. **Check Language Settings**:  
+   - The TV language must match your country, and supported languages depend on your region. Adjust the language in **Settings > General > Language** if needed.
+
+4. **Re-pair the Remote**:  
+   - Pair the remote again with the TV. Follow the pairing instructions in your TV manual or on-screen prompts.
+
+5. **Test with a Short Command**:  
+   - Press and hold the voice button, say a simple command (e.g., ""Open YouTube""), and release the button.
+
+6. **Server Error**:  
+   - If a server error occurs, there may be no response temporarily. Wait and try again later.
+
+If the issue persists after these steps, contact support for further assistance. [p0238], [p0201]",,,answer,p0238,p0238|p0182|p0201,y,p0238|p0201,Settings > General > Network > Network Status** to ensure the TV is connected to the Internet | Settings > General > Language** if needed,Check Internet Connection | Check Language Settings | Re-pair the Remote | Settings > General > Language | Test with a Short Command | Verify Remote Compatibility,837,265,5.94,,,,
+TV-0029,Picture & Sound,troubleshooting,"Test the speakers
+
+The sound from my TV sometimes crackles. Is there a way to test the speakers on the TV itself, to see whether the TV or my cable box is the problem?","Yes, you can test the TV speakers using the built-in sound test feature. Follow these steps:
+
+1. Go to **Settings > Support > Self Diagnosis > Start Sound Test**.
+2. The TV will play a melody. Listen carefully to check if the sound is clear and without distortion.
+
+- If the melody plays clearly, the TV speakers are fine, and the issue is likely with the cable box or the connection.
+- If the melody is distorted or silent, the problem is with the TV speakers.
+
+Additional checks if the TV speakers are fine:
+- Check the TV volume and mute settings.
+- Check the volume and audio output settings of the cable box.
+- Ensure **Sound Output** is set to **TV Speaker** (Settings > Sound > Sound Output).
+- If the sound is distorted, lower the volume and select **Standard** in **Settings > Sound > Sound Mode**.
+- Reset the sound settings: **Settings > Sound > Expert Settings > Reset Sound**.
+
+If the issue persists after these steps, contact support for further assistance. [p0030], [p0014]",,,answer,p0030,p0030|p0014|p0161,y,p0030|p0014,,,1495,221,3.37,,,,
+TV-0030,Picture & Sound,troubleshooting,"Check the picture on the TV
+
+The picture from my cable box looks odd. How can I find out whether the TV itself is the problem?","To check whether the TV itself is the problem with the picture, follow these steps:
+
+1. Go to **Settings > Support > Self Diagnosis > Start Picture Test**.
+   - The TV will display a test picture.
+   - If the test picture looks fine, the TV is working correctly, and the issue is likely with the cable box or its connection.
+
+2. If the test picture looks fine:
+   - Check that the video cable connecting the cable box to the TV is fully inserted at both ends.
+   - Try connecting the cable box to a different HDMI port on the TV.
+
+3. If the test picture shows issues (e.g., a tint, a line, or a dark area), the problem is with the TV itself. Contact support for further assistance.
+
+4. If the colors are correct but the picture is too dark or too bright, adjust the settings:
+   - Go to **Settings > Picture > Expert Settings > Backlight** and **Brightness** to make adjustments.
+
+5. If needed, you can reset the picture settings to default:
+   - Go to **Settings > Picture > Expert Settings > Reset Picture**.
+
+Let me know if you need further help! [p0091]",,,answer,p0106,p0091|p0030|p0161,n,p0091,,,1465,243,3.07,,,,
+TV-0031,"Power, Setup & Viewing",troubleshooting,"Takes forever to start
+
+When I switch the TV on it takes more than a minute until I see the picture, and then the home screen pops up by itself. Can this be made faster?","To make your Smart Tech TV start faster, follow these steps:
+
+1. **Turn off automatic startup features:**
+   - Go to **Settings > General > Smart Features**.
+   - Switch off **Autorun Smart Tech Hub** and **Autorun Last App**.
+
+2. **Check the network connection:**
+   - Go to **Settings > General > Network > Network Status**.
+   - Ensure the TV is connected to a stable network. A missing or slow network can delay startup.
+
+3. **Delete unused apps:**
+   - Remove apps you do not use to reduce loading time.
+
+4. **Check for software updates:**
+   - If the TV shows an update message during startup, wait for the update to complete and do not unplug the TV.
+   - To manually update, go to **Settings > Support > Software Update** and check for updates.
+
+5. **Power cycle the TV:**
+   - Unplug the TV from the power outlet for 60 seconds, then plug it back in.
+
+If the TV still takes a long time to start after these steps, contact support for further assistance. [p0245]",,,answer,p0245,p0245|p0243|p0175,y,p0245,,Check for software updates | Check the network connection | Power cycle the TV | Turn off automatic startup features,1316,231,2.97,,,,
+TV-0032,"Network, Apps & Software",troubleshooting,"TV will not connect to Wi-Fi
+
+My TV says the wireless network connection failed. My phone works fine on the same Wi-Fi and I already switched the router off and on. This is really annoying.","I understand how frustrating this can be. Here are the steps to troubleshoot your TV's Wi-Fi connection issue:
+
+1. **Check the Wi-Fi Signal Strength**:  
+   - Go to **Settings > General > Network > Network Status** and check the signal strength.  
+   - If the signal is weak, try moving the router closer to the TV or placing it in a central position.  
+
+2. **Reset the Network Settings on the TV**:  
+   - Go to **Settings > General > Network > Reset Network**.  
+   - You will need to re-enter your Wi-Fi password after this step.  
+
+3. **Verify the Router Settings**:  
+   - Ensure the DHCP server is enabled on your router.  
+   - If you are still unable to connect, check the IP settings:  
+     - Go to **Settings > General > Network > Network Status > IP Settings**.  
+     - Ensure the settings are correct and that the DNS values are properly configured.  
+
+4. **Additional Checks**:  
+   - Make sure the TV is not connected to a guest network.  
+   - If the issue persists, confirm that the router is not isolating Wi-Fi devices from each other.  
+
+If none of these steps resolve the issue, it may be necessary to contact your Internet Service Provider or a human support agent for further assistance. Let me know if you'd like me to connect you to a human colleague.  
+
+Referenced manual passages: [p0072], [p0042].",,,answer,p0042|p0072,p0072|p0234|p0042,y,p0072|p0042,,Additional Checks | Check the Wi-Fi Signal Strength | Reset the Network Settings on the TV | Verify the Router Settings,1210,305,4.3,,,,
+TV-0033,Picture & Sound,how-to,"Lower the backlight
+
+Where do I change the backlight of the TV? Watching in the evening hurts my eyes.","To lower the backlight of your Smart Tech TV, follow these steps:
+
+1. Go to **Settings > Picture > Expert Settings**.
+2. Select **Backlight** and adjust it to a lower level to suit your preference.
+
+This will reduce the screen's brightness and make it more comfortable for evening viewing. 
+
+Reference: [p0046]",,,answer,p0046|p0091,p0010|p0225|p0046,y,p0046,,,1093,71,1.74,,,,
+TV-0034,"Network, Apps & Software",how-to,"Connect my phone app to the TV
+
+I installed the Smart Tech Home app on my phone. How do I connect it to my TV?","To connect your phone app to your TV, follow these steps:
+
+1. **Ensure the TV and phone are on the same network**:
+   - Connect both your TV and phone to the same Wi-Fi network (not a guest network).
+
+2. **Sign in to your Smart Tech account on the TV**:
+   - Go to **Settings > General > System Manager > Smart Tech Account** and sign in.
+
+3. **Check if your TV supports Smart Tech Home**:
+   - Open the Smart Tech Home app on your phone and check the **Supported Device** menu to confirm your TV is compatible.
+
+4. **Set up the TV for mobile control**:
+   - On the TV, go to **Settings > General > Network > Expert Settings > Power On with Mobile** and enable this option.
+
+5. **Connect using the Smart Tech Home app**:
+   - Open the Smart Tech Home app on your phone.
+   - Select your TV from the dashboard or device list.
+   - If you have multiple TVs, assign a unique name to your TV in **Settings > General > System Manager > Device Name** to make it easier to identify.
+
+6. **Restart devices if needed**:
+   - If the TV is not found, turn both the TV and phone off and on, then try again.
+
+If the app still cannot find your TV, check your router settings to ensure Wi-Fi devices are not isolated from each other. If the issue persists, contact support for further assistance.
+
+Referenced passages: [p0130], [p0234], [p0126]",,,answer,p0005,p0130|p0234|p0126,n,p0130|p0234|p0126,Settings > General > System Manager > Device Name** to make it easier to identify,Check if your TV supports Smart Tech Home | Connect using the Smart Tech Home app | Ensure the TV and phone are on the same network | Restart devices if needed | Set up the TV for mobile control | Sign in to your Smart Tech account on the TV,1187,318,5.32,,,,
+TV-0035,"Network, Apps & Software",how-to,"Browse the web on the TV
+
+Can I look at websites on my TV? Where do I find the browser?","Yes, you can browse websites on your Smart Tech TV using the Internet function. Here's how to access it:
+
+1. Open the Internet browser on your TV by selecting **Internet** from the main menu or apps list.
+2. Once the browser is open, you can see recently viewed websites or featured recommendations. Select a desired website to access it.
+
+**Tips for easier browsing:**
+- You can connect a keyboard and mouse to the TV for easier navigation.
+- Use the Directional Pad on your remote to scroll through web pages.
+
+**Important limitations to keep in mind:**
+- The browser does not support Java applications, file downloads, or Flash videos.
+- Some websites, videos, and features (e.g., e-commerce or ActiveX) may not work properly.
+- Web browsing speed depends on your network environment.
+
+For more details, refer to [p0113] and [p0211].",,,answer,p0113,p0113|p0211|p0036,y,p0113|p0211,,Important limitations to keep in mind | Tips for easier browsing,1440,182,5.31,,,,
+TV-0036,Connected Devices & Remote,how-to,"Connect an external hard drive
+
+I want to watch videos from an external hard drive. What do I need to know before I plug it into the TV?","Here are the key points to know before connecting an external hard drive to your Smart Tech TV:
+
+1. **Device Compatibility**:
+   - The TV supports MSC (Mass Storage Class) devices only, such as external hard drives, flash drives, and digital cameras. [p0185]
+   - RAID-type USB hard drives are not supported. [p0218]
+
+2. **Connection Requirements**:
+   - Connect the external hard drive directly to the TV's USB port. USB hubs and extension cables are not supported and may cause connection issues. [p0185], [p0240]
+   - If your TV has a dedicated USB (HDD) port, use that port for the external hard drive. [p0185], [p0240]
+
+3. **Power Supply**:
+   - Use an external hard drive with its own power adapter, as the TV may not provide enough power for some drives. [p0185], [p0240]
+
+4. **File System and File Limitations**:
+   - The TV supports FAT, exFAT, and NTFS file systems. Ensure your hard drive is formatted in one of these file systems. [p0185]
+   - The TV can display up to 1,000 files per folder and may not access files if the total number of files and folders exceeds 8,000. [p0185]
+   - Certain files may not play depending on their encoding or if they are unsupported by your TV model. [p0185]
+
+5. **Usage Tips**:
+   - Do not disconnect the hard drive while files are being transferred or played. [p0185], [p0240]
+
+If you encounter any issues, such as the TV not recognizing the hard drive, try another USB port or a different device. If the problem persists, contact support for further assistance. [p0240]",,,answer,p0185,p0240|p0185|p0218,y,p0185|p0218|p0240,,Connection Requirements | Device Compatibility | File System and File Limitations | Power Supply | Usage Tips,1211,381,6.36,,,,
+TV-0037,Connected Devices & Remote,how-to,"Speak instead of typing
+
+When the on-screen keyboard is open, can I speak into the remote instead of typing the letters?","Yes, you can speak into the remote instead of typing when the on-screen keyboard is open. Follow these steps:
+
+1. When the virtual keyboard is displayed on the screen, press and hold the microphone button on the Smart Tech Remote.
+2. Speak into the microphone on the remote.
+3. Release the microphone button. What you say will appear on the screen as text.
+
+Note: This function may not be supported depending on your TV model or geographical area. [p0182]",,,answer,p0182,p0182|p0178|p0186,y,p0182,,,792,97,2.04,,,,
+TV-0038,"Power, Setup & Viewing",how-to,"Set clock manually
+
+The TV shows the wrong time. Where do I set the current time?","To set the clock manually on your Smart Tech TV, follow these steps:
+
+1. Go to **Settings > General > System Manager > Time > Clock**.
+2. Set **Clock Mode** to **Manual**.
+3. Use the directional buttons on the remote control to select and adjust the **Date** and **Time**.
+
+Note: You may need to reset the clock if the power cable is disconnected or if the TV is not connected to the Internet or receiving broadcast signals.
+
+For more details, refer to [p0119].",,,answer,p0119,p0119|p0102|p0125,y,p0119,,,1168,108,2.15,,,,
+TV-0039,Picture & Sound,how-to,"Picture cut off at the edges
+
+On some channels the picture is cut off at the edges. Is there a setting that fits the picture to the screen?","Yes, you can adjust the picture size to fit the screen. Follow these steps:
+
+1. Go to **Settings > Picture > Picture Size Settings**.
+2. Set **Picture Size** to **16:9 Standard** or **Custom**.
+3. If you choose **Custom**, you can adjust the **Zoom and Position** to fit the picture to the screen.
+
+Note: The **Zoom and Position** option is only available if **Picture Size** is set to **Custom**. [p0019], [p0106]",,,answer,p0118,p0106|p0105|p0019,n,p0019|p0106,,,1734,109,3.69,,,,
+TV-0040,"Network, Apps & Software",how-to,"Rename TV on network
+
+I have two TVs at home and cannot tell them apart in the app. Can I give mine a different name?","Yes, you can rename your TV to make it easier to identify. Follow these steps:
+
+1. Go to **Settings > General > System Manager > Device Name** on your TV.
+2. Enter a new name for your TV.
+
+This will update the name displayed in the Smart Tech Home app and on your network. 
+
+If you need further assistance, let me know! [p0005], [p0126]",,,answer,p0141,p0005|p0126|p0234,n,p0005|p0126,Settings > General > System Manager > Device Name** on your TV,,1147,85,2.06,,,,

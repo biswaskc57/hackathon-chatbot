@@ -120,6 +120,8 @@ class EmailDraft:
     retrieved_ids: list = field(default_factory=list)
     removed_before_model: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
+    input_tokens: int = 0
+    output_tokens: int = 0
 
 
 def parse_result(text: str) -> dict:
@@ -129,10 +131,12 @@ def parse_result(text: str) -> dict:
     return json.loads(match.group(0))
 
 
-def draft_reply(subject: str, body: str, client: APIClient | None = None, dry_run: bool = False) -> EmailDraft:
+def draft_reply(subject: str, body: str, client: APIClient | None = None, dry_run: bool = False,
+                settings=None) -> EmailDraft:
+    """settings: leave None for the email-draft preset; eval_email.py passes a copy with another model."""
     from eval_run import load_corpus_text, unknown_bold_terms, unknown_menu_paths  # reuse the evaluation checks
 
-    settings = email_settings()
+    settings = settings or email_settings()
     cleaned, removed = clean_email(body)
     message = f"Subject: {subject}\n\n{cleaned}"
     index = get_index(settings.search_questions, settings.glossary)   # the search the preset asks for
@@ -149,6 +153,8 @@ def draft_reply(subject: str, body: str, client: APIClient | None = None, dry_ru
     try:
         turn = run_turn(client or APIClient(), [], message, settings, new_conversation_id(), 1,
                         source="email", passages=passages)
+        result.input_tokens = turn.usage.get("input_tokens") or 0
+        result.output_tokens = turn.usage.get("output_tokens") or 0
         data = parse_result(turn.answer)
     except (LLMError, ValueError) as exc:
         result.notes_for_agent = f"No draft: {exc}"
