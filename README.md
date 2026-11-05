@@ -43,6 +43,7 @@ Not `run.py` tasks yet; run them with the project's Python:
 | `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched, golden set and tickets (tickets as totals only) |
 | `.venv/bin/python eval_run.py --corpus raw --set golden --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
 | `.venv/bin/python eval_run.py --corpus none\|raw\|enriched --set golden\|tickets [--limit N]` | Run an evaluation step and write the results to `results/` |
+| `... eval_run.py --corpus raw --model gpt-5 --params '{"temperature": 1, "reasoningEffort": "minimal"}'` | Same, with another model and the parameters it needs (changes the fingerprint). See `results/model_comparison_20261105.md` |
 | `.venv/bin/python make_search_questions.py [--limit N]` | Generate customer-style search questions for each passage (needs the gateway; resumes where it stopped) |
 
 

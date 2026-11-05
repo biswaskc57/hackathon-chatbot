@@ -1,0 +1,114 @@
+id,category,kind,question,answer,reference_answer,must_include,expected_behaviour,source_passage_ids,retrieved_ids,retrieval_hit,cited_ids,unknown_menu_paths,unknown_bold_terms,input_tokens,output_tokens,latency_s,score (correct/partly/wrong/handover),invented_content (y/n),scorer,notes
+Q01,Picture & Sound,how-to,"Which picture mode is the easiest on the eyes, and where do I select it?","The **Natural** picture mode is easiest on the eyes because it reduces eye strain.
+
+Select it here: **Settings > Picture > Picture Mode > Natural**. [p0001]",Select Natural in Settings > Picture > Picture Mode. It reduces eye strain for a comfortable viewing experience. The function may not be supported depending on the model.,Settings > Picture > Picture Mode; select Natural; it reduces eye strain,answer,p0001,p0046|p0001|p0226,y,p0001,Settings > Picture > Picture Mode > Natural,Settings > Picture > Picture Mode > Natural,948,37,3.19,,,,
+Q02,Picture & Sound,how-to,How do I change the picture size?,"1. Go to **Settings > Picture > Picture Size Settings > Picture Size**.
+2. Choose **16:9 Standard**, **Custom**, or **4:3**. Available sizes may vary depending on the input signal.[p0020]
+
+To adjust the picture position, use **Settings > Picture > Picture Size Settings > Zoom and Position**. This is available only when Picture Size is set to **Custom**.[p0019]
+
+You can also try **Settings > Picture > Picture Size Settings > Fit to Screen**, if supported by the selected picture size and broadcast signal.[p0118]","Open Settings > Picture > Picture Size Settings > Picture Size and choose a size: 16:9 Standard, Custom or 4:3. Do not watch in 4:3 mode for long periods, because the black bars can leave temporary or permanent after-images. The supported sizes depend on the input signal.","Settings > Picture > Picture Size Settings > Picture Size; options 16:9 Standard, Custom, 4:3",answer,p0020,p0019|p0020|p0118,y,p0020|p0019|p0118,,This is available only when Picture Size is set to,714,121,2.46,,,,
+Q03,Picture & Sound,how-to,How do I choose which speakers the TV uses for sound?,"1. Open **Settings > Sound > Sound Output**.
+2. Select which speakers the TV should use for audio output, such as **TV Speaker** or a connected external speaker. [p0051]
+
+External speakers may not be controllable with the Smart Tech Remote, and some sound menus may be unavailable when an external speaker is enabled. [p0051]","Open Settings > Sound > Sound Output and select the speakers the TV uses for audio output. External speakers may not be controllable with the Smart Tech Remote, and some sound menus are not supported while an external speaker is enabled.",Settings > Sound > Sound Output; select the speakers,answer,p0051,p0051|p0014|p0092,y,p0051,,,862,75,2.29,,,,
+Q04,Picture & Sound,troubleshooting,My screen is black but I can still hear the sound. What should I do?,"Try these steps:
+
+1. Press a button on the remote and open **Source**. Confirm that the correct input is selected.
+2. Open **Settings > General > Eco Solution** and set **Power Saving Mode** to **Off**.
+3. Check the backlight under **Settings > Picture > Expert Settings**.
+4. If you are playing media, make sure **Picture Off** is not active. Also check that Ambient Mode is not showing a black-screen state.
+5. Run **Settings > Support > Self Diagnosis > Start Picture Test**.
+   - If the test picture appears, the TV is working; check the connected device or cable.
+   - If the test remains black while sound works, unplug the TV for 60 seconds and reconnect it.
+6. Contact a human support colleague if the Picture Test is still black after reconnecting. [p0223]","Check that the right input is selected in Source, set Settings > General > Eco Solution > Power Saving Mode to Off, and run Settings > Support > Self Diagnosis > Start Picture Test. If the test picture appears, the connected device or its cable is the cause. Unplug the TV for 60 seconds and connect it again. Contact support if the Picture Test stays black while the sound works.",check the input in Source; Power Saving Mode off; Start Picture Test (Settings > Support > Self Diagnosis); unplug for 60 seconds; contact support if the test stays black,answer,p0223,p0223|p0092|p0014,y,p0223,,,1026,178,4.16,,,,
+Q05,Picture & Sound,troubleshooting,Sports and action scenes look blurry. How can I improve this?,"1. Select **Settings > Picture > Picture Mode**, then choose **Movie** or **Standard**.  
+2. Open **Settings > Picture > Expert Settings > Auto Motion Settings** and try the available options.  
+3. Run **Settings > Support > Self Diagnosis > Start Picture Test**. If the test image is sharp, the broadcast or signal may be causing the blur.  
+4. Check **Settings > Support > Self Diagnosis > Signal Information**. Select HD channels where possible.  
+5. If you changed many picture settings, select **Settings > Picture > Expert Settings > Reset Picture**. Compressed broadcasts or weak signals can cause blurring, especially during sports and action scenes. [p0226][p0117]","Select Movie or Standard in Settings > Picture > Picture Mode and try the options in Settings > Picture > Expert Settings > Auto Motion Settings. Run Start Picture Test: if the test picture is sharp, the TV is fine and the broadcast is the cause, so check Signal Information and choose HD channels where possible. Use Reset Picture if you changed many settings.","Movie or Standard picture mode; Auto Motion Settings; Start Picture Test: if the test picture is sharp the broadcast is the cause, so check Signal Information and choose HD channels; Reset Picture if many settings were changed",answer,p0226|p0106,p0226|p0166|p0117,y,p0226|p0117,,,1041,149,2.68,,,,
+Q06,"Network, Apps & Software",how-to,Can I update software through internet and through USB device?,"Yes. You can update the TV either through the internet or with a USB device.
+
+1. **Through the internet**
+   - Connect the TV to the internet.
+   - Go to **Settings > Support > Software Update > Update Now**.
+   - Do not turn off the TV. It will turn off and on automatically when the update is complete. [p0177]
+
+2. **Through a USB device**
+   - Download the update package from the Smart Tech website to a computer.
+   - Save the package in the USB device’s **top-level folder**.
+   - Connect the USB device to the TV.
+   - Go to **Settings > Support > Software Update > Update Now**. [p0177]
+
+The TV’s video and audio settings will reset to their defaults after the update. [p0177]","Yes. Through the Internet: Settings > Support > Software Update > Update Now (needs an active Internet connection). Through a USB device: download the update package from the Smart Tech website, save it in the top-level folder of the USB device (otherwise the TV cannot find it), connect the device and update. Do not turn the TV off during the update. Video and audio settings are reset to their defaults afterwards.",Settings > Support > Software Update > Update Now; USB update: package from the website in the top-level folder; do not switch the TV off,answer,p0177,p0177|p0233|p0007,y,p0177,,,957,167,2.67,,,,
+Q07,"Network, Apps & Software",how-to,How to update apps automatically?,"To update installed apps automatically:
+
+1. Open **APPS**.
+2. Select **Settings**.
+3. Set **Auto Update** to **ON**.
+
+The TV must be connected to the Internet. This setting updates apps, not the TV’s software. [p0045]","Open APPS and select Settings, then set Auto Update to ON. Installed apps are then updated automatically while the TV is connected to the Internet.",APPS > Settings; set Auto Update to ON,answer,p0045,p0007|p0045|p0245,y,p0045,,,1143,58,2.41,,,,
+Q08,"Network, Apps & Software",how-to,How can I check the current network and Internet status?,"1. Open **Settings > General > Network > Network Status**.
+2. The TV will display the current network and Internet connection status.[p0043]",Open Settings > General > Network > Network Status. It shows whether the TV is connected to a network and to the Internet.,Settings > General > Network > Network Status,answer,p0043,p0042|p0043|p0229,y,p0043,,,1216,32,3.32,,,,
+Q09,"Network, Apps & Software",troubleshooting,An app asks me to sign in again every time I open it. How do I stop that?,"1. Set the TV’s clock to automatic: **Settings > General > System Manager > Time > Clock > Clock Mode > Auto**.
+2. Check that you are signed in: **Settings > General > System Manager > Smart Tech Account > Sign In**.
+3. Inside the app, sign out and sign in again. Select the option to stay signed in.
+4. If the problem continues, delete the app from **APPS** and install it again.
+5. As a last resort, use **Settings > Support > Self Diagnosis > Reset Smart Tech Hub**. This deletes account information, service agreements, and apps. [p0231]
+
+If the app also signs you out on other devices, contact the app provider.","Set the clock to automatic in Settings > General > System Manager > Time, check the sign-in in Settings > General > System Manager > Smart Tech Account > Sign In, and sign out and in again inside the app. If it continues, delete the app in APPS and install it again. Reset Smart Tech Hub is a last step: it deletes account information and apps.",set the clock to Auto (Time > Clock > Clock Mode); check Smart Tech Account > Sign In; sign out and in inside the app; reinstall the app; Reset Smart Tech Hub only as a last step,answer,p0231,p0231|p0232|p0152,y,p0231,,,1029,148,2.67,,,,
+Q10,"Network, Apps & Software",troubleshooting,The TV keeps showing the software update message even after I updated. What can I do?,"Try these steps:
+
+1. Check the connection: **Settings > General > Network > Network Status**.  
+2. Start the update again: **Settings > Support > Software Update > Update Now**. Let it finish, and do not turn off the TV until it restarts automatically. [p0233][p0177]  
+3. Delete unused apps to free storage, then run **Update Now** again. [p0233]  
+4. If the message continues, update by USB. Download the update package from the Smart Tech website, save it in the USB device’s top-level folder, connect it to the TV, and select **Settings > Support > Software Update > Update Now**. [p0233][p0177]  
+5. After updating, check **Settings > Support > About This TV**. If the software version has not changed and the message appears again, a human colleague will need to help. [p0233]","Open Settings > Support > Software Update > Update Now and let the update finish without switching the TV off. Check Network Status and free storage first. You can also update from a USB device with the package from the Smart Tech website. If the message returns and the version in Settings > Support > About This TV does not change, contact support.",Software Update > Update Now and do not switch off; check Network Status and free storage; USB update; contact support if the version does not change,answer,p0233,p0233|p0007|p0177,y,p0233|p0177,,,964,195,2.73,,,,
+Q11,Connected Devices & Remote,how-to,How do I switch the TV to my Blu-ray player?,"1. Turn on the Blu-ray player.
+2. Press the TV remote’s **Source** button.
+3. Select the HDMI input connected to the Blu-ray player. The player’s output should appear on the TV screen.
+4. To control a supported Blu-ray player with the TV remote, point the remote at the player and follow the automatic universal remote setup. [p0006]
+
+If your Blu-ray player uses component cables instead, select the corresponding component input. Connect the matching colors, and use both the blue component adapter and yellow AV adapter. [p0053]",Open Source and select the connected device (here the Blu-ray player). The output of the selected device is then displayed on the TV screen.,open Source; select the connected device,answer,p0006,p0006|p0101|p0053,y,p0006|p0053,,,1012,116,2.65,,,,
+Q12,Connected Devices & Remote,how-to,How can I use my TV remote to control my soundbar or set-top box?,The provided manual passages do not explain how to use the TV remote to control a soundbar or set-top box. A human colleague can help with this.,"If the device is connected by an HDMI cable and supports Anynet+ (HDMI-CEC), the TV remote controls it; Anynet+ is switched on in Settings > General > External Device Manager > Anynet+ (HDMI-CEC). For a device that does not support HDMI-CEC, configure the Universal Remote: open Source > Universal Remote and register the device by following the on-screen instructions.","Anynet+ (HDMI-CEC) over HDMI, switched on in Settings > General > External Device Manager; Universal Remote (Source > Universal Remote) for devices without HDMI-CEC",answer,p0160|p0161|p0219,p0109|p0119|p0183,n,,,,1243,31,2.25,,,,
+Q13,Connected Devices & Remote,how-to,How do I connect a Bluetooth keyboard to the TV?,"1. Put the Bluetooth keyboard into **pairing mode** and place it close to the TV.
+2. On the TV, open **Settings > General > External Device Manager > Input Device Manager > Bluetooth Device List**.
+3. Select the keyboard from the list to pair it. [p0176][p0179]
+
+If the keyboard does not appear, select **Refresh**. Ensure it is charged and still in pairing mode. Bluetooth support may vary by model; if the TV finds no Bluetooth devices, a wired connection may be required. [p0176][p0241]","Open Settings > General > External Device Manager > Input Device Manager > Bluetooth Device List. If the keyboard is not detected, move it close to the TV and select Refresh so that the TV scans again. The function may not be supported depending on the model or region.",Settings > General > External Device Manager > Input Device Manager > Bluetooth Device List; move the keyboard close; Refresh,answer,p0176,p0176|p0241|p0179,y,p0176|p0179|p0241,,,782,119,4.08,,,,
+Q14,Connected Devices & Remote,troubleshooting,The remote control does nothing when I press the buttons.,"The provided manual passages do not explain what to do when the remote control does nothing.
+
+You can open the TV’s embedded e-Manual using **Settings > Support > Open e-Manual** or the **E-MANUAL** button, then check the remote-control troubleshooting section.[p0103] If the remote still does not respond, a human colleague can help.","Replace the batteries, point the remote at the sensor with nothing in between, and remove the protective stickers from the sensors. Pair the remote again by pointing it at the sensor and pressing and holding both pairing buttons for 3 seconds or more. In the meantime use the buttons on the TV or the Smart Tech Home app. Contact support if it still fails.",replace the batteries; point the remote at the sensor; remove protective stickers; pair again by holding both pairing buttons for 3 seconds; contact support,answer,p0236|p0107|p0108,p0169|p0103|p0143,n,p0103,Settings > Support > Open e-Manual** or the **E-MANUAL** button,,1544,74,3.61,,,,
+Q15,Connected Devices & Remote,troubleshooting,I switch to the HDMI input of my game console but the screen stays black.,"Try these steps:
+
+1. Open **Source** and select the HDMI port where the game console is connected.[p0239]
+2. Make sure the console is switched on, then unplug and firmly reconnect the HDMI cable at both ends.[p0239]
+3. Try another HDMI port and, if possible, another High-Speed HDMI cable.[p0239]
+4. Set the console’s output resolution to a value supported by the TV, then unplug and reconnect the console.[p0239]
+5. If needed, enable game mode: **Settings > General > External Device Manager > Game Mode Settings > Game Mode**.[p0029]
+
+If the TV still shows no picture from the console, or from any device on any HDMI port, a human colleague can help.[p0239]","Select the right port in Source, push the HDMI cable in fully and switch the device on. Try another HDMI port or a High-Speed HDMI cable. For a UHD player change Settings > General > External Device Manager > HDMI UHD Color, and set the output resolution of the device to a supported value. Contact support if no device shows a picture on any port.",select the right port in Source; HDMI cable fully inserted and device on; another port or cable; HDMI UHD Color for a UHD player; contact support if no port works,answer,p0239,p0239|p0006|p0029,y,p0239|p0029,,,957,162,2.72,,,,
+Q16,"Power, Setup & Viewing",how-to,Where do I set a sleep timer and how long can it be?,"Set it here: **Settings > General > System Manager > Time > Sleep Timer**. You can set the TV to turn off after a countdown of up to **180 minutes**.[p0121]
+
+You can also access **Sleep Timer** from the Smart Tech Hub quick settings menu.[p0067]","Open Settings > General > System Manager > Time > Sleep Timer. The TV then switches itself off after the time you set, up to 180 minutes.",Settings > General > System Manager > Time > Sleep Timer; up to 180 minutes,answer,p0121,p0121|p0244|p0067,y,p0121|p0067,,,1529,62,2.32,,,,
+Q17,"Power, Setup & Viewing",how-to,How do I increase the font size?,"1. Go to **Settings > General > Accessibility > Enlarge**.
+2. Set **Enlarge** to **On** to increase the font size on the screen. [p0192]",Open Settings > General > Accessibility > Enlarge and activate it to enlarge the font on the screen.,Settings > General > Accessibility > Enlarge; activate it,answer,p0192,p0192|p0087|p0019,y,p0192,,,1180,40,2.06,,,,
+Q18,"Power, Setup & Viewing",how-to,How do I check signal info and strength?,"To check digital channel signal information and strength:
+
+1. Open **Settings > Support > Self Diagnosis > Signal Information**.
+2. Review the signal information and strength shown. This feature is available for **digital channels only**.[p0074][p0246]","To check signal info and strength, go to the Settings, then select Support, followed by Self Diagnosis. From there, you can choose Signal Information to view the signal strength information for over-the-air digital signals.",Settings > Support > Self Diagnosis > Signal Information; digital channels,answer,p0074,p0074|p0246|p0203,y,p0074|p0246,,,918,53,2.42,,,,
+Q19,"Power, Setup & Viewing",troubleshooting,My TV turns itself on at night. Why?,"The TV may be waking because of a mobile device, an HDMI device, a viewing/recording schedule, or a home-automation or voice routine.[p0243]
+
+1. Go to **Settings > General > Network > Expert Settings > Power On with Mobile** and switch it off.
+2. Go to **Settings > General > External Device Manager > Anynet+ (HDMI-CEC)** and switch it off.
+3. Open **Live TV > Schedule Manager** and delete any schedules you do not need.
+4. Check that no Smart Tech Home automation or Smart Tech Voice routine switches on the TV.
+
+If it still turns on with these functions off, a human colleague can help. [p0243]","Switch off Power On with Mobile (Settings > General > Network > Expert Settings) and Anynet+ (HDMI-CEC) in External Device Manager, delete schedules you do not need in Live TV > Schedule Manager, and check Smart Tech Home automations and voice routines. Switch the functions on again one at a time to find the cause. Contact support if it wakes up with all of them off.",switch off Power On with Mobile and Anynet+ (HDMI-CEC); delete unneeded schedules; check Smart Tech Home automations and voice routines; test one at a time,answer,p0243,p0243|p0244|p0025,y,p0243,,,946,146,2.62,,,,
+Q20,"Power, Setup & Viewing",troubleshooting,The TV says Weak or No Signal and some channels are missing.,"1. Check that the antenna cable is firmly connected to the TV. If you use a cable or satellite box, also check its connection and source. [p0246]
+
+2. Check the signal strength: **Settings > Support > Self Diagnosis > Signal Information**. This is available for digital channels only. [p0246]
+
+3. If you receive channels through an antenna, run **Settings > Broadcasting > Auto Program** to scan again. Do not use this scan with a cable or satellite box. The scan replaces the saved channel list, including favorites. [p0246]
+
+4. Bad weather or a defective splitter can weaken the signal. If the signal remains weak, contact your cable/satellite provider or an antenna installer; the antenna may need alignment. [p0246]","Check the antenna cable, open Settings > Support > Self Diagnosis > Signal Information (digital channels only) to see the strength, and if you use an antenna (not a cable or satellite box) run Settings > Broadcasting > Auto Program to scan again; the scan replaces the saved channel list. Align the antenna if needed. Contact your cable or satellite provider or an antenna installer if the signal stays weak.",check the antenna cable; Signal Information; Auto Program only with an antenna (it replaces the channel list); antenna installer or provider if the signal stays weak,answer,p0246|p0117,p0246|p0117|p0203,y,p0246,,,1085,160,3.95,,,,
