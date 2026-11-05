@@ -14,6 +14,19 @@
     "strict-0.0": {
       "temperature": 0.0,
       "max_tokens": 400
+    },
+    "gemini-3.5-flash": {
+      "model": "gemini-3.5-flash",
+      "extra_params": {
+        "reasoningEffort": "minimal"
+      }
+    },
+    "gpt-5-minimal": {
+      "model": "gpt-5",
+      "temperature": 1,
+      "extra_params": {
+        "reasoningEffort": "minimal"
+      }
     }
   }
 }

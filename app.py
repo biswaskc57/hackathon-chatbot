@@ -1,4 +1,4 @@
-"""Streamlit chat UI for the Smart Tech support assistant (early version, no RAG).
+"""Streamlit chat UI for the Smart Tech support assistant (answers from the TV manual, BM25 search).
 
 Run:  python3 run.py ui
 Settings come from settings.json presets (config.py); the conversation logic is in assistant.py.
@@ -165,7 +165,7 @@ with st.sidebar:
     if st.button("New conversation", use_container_width=True):
         start_conversation()
         st.rerun()
-    st.caption("EU-hosted gateway (Sweden Central). No manual retrieval yet. "
+    st.caption("EU-hosted gateway (Sweden Central). Answers use the 3 best manual passages (raw corpus). "
                "Turns are logged to logs/conversation_log.jsonl without customer text.")
 
 

@@ -112,7 +112,7 @@ def parse_usage(response: dict) -> dict:
 if __name__ == "__main__":
     # Quick connectivity test: python llm_client.py
     api = APIClient()
-    model = os.getenv("MODEL", "gpt-4o-mini")
+    model = os.getenv("MODEL", "gpt-4o")
     reply = api.create_chat_completion(
         model=model,
         messages=[{"role": "user", "content": "Hello, how can you help me?"}],

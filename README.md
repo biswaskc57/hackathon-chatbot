@@ -30,6 +30,7 @@ The organisers' data files are already in `data/`. Without `data/corpus.jsonl` t
 | `python3 run.py build` | Create `.venv` and install `requirements.txt` |
 | `python3 run.py ui` | Start the Streamlit web UI |
 | `python3 run.py chat` | Start the command-line chat |
+| `python3 run.py api` | Start the web API for the Lovable UI at http://localhost:8000 (docs at `/docs`) |
 | `python3 run.py test-gateway` | Send one test message to the gateway |
 
 To add a task, add one line to `TASKS` at the top of `run.py`.
@@ -43,6 +44,7 @@ Not `run.py` tasks yet; run them with the project's Python:
 | `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched, golden set and tickets (tickets as totals only) |
 | `.venv/bin/python eval_run.py --corpus raw --set golden --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
 | `.venv/bin/python eval_run.py --corpus none\|raw\|enriched --set golden\|tickets [--limit N]` | Run an evaluation step and write the results to `results/` |
+| `... eval_run.py --corpus raw --model gpt-5 --params '{"temperature": 1, "reasoningEffort": "minimal"}'` | Same, with another model and the parameters it needs (changes the fingerprint). See `results/model_comparison_20261105.md` |
 | `.venv/bin/python make_search_questions.py [--limit N]` | Generate customer-style search questions for each passage (needs the gateway; resumes where it stopped) |
 
 
@@ -55,10 +57,17 @@ Not `run.py` tasks yet; run them with the project's Python:
 | `MODEL` | no | `gpt-4o` | Model for `run.py test-gateway` only. Answers use the model of the active preset in `settings.json` |
 | `MODELS` | no | `gpt-4o,gpt-4.1` | Extra models offered in the UI dropdown (models used in presets are added automatically) |
 | `LLM_BASE_URL` | no | | Override the gateway address |
+| `ACCESS_CODE` | for the API | | Code testers enter in the Lovable UI; every API request must send it |
+| `API_PRESET` | no | `gemini-3.5-flash` | Preset the API uses when the UI does not pick one (default: `default_preset`) |
+| `API_PRESETS` | no | `baseline,gemini-3.5-flash,gpt-5-minimal` | Presets testers may pick in the UI (default: all) |
+| `API_MODELS` | no | `gpt-4o,gemini-3.5-flash,gpt-5` | Models testers may pick in the settings panel (default: all in `config.MODEL_RULES`) |
+| `ALLOW_PRIVATE_NETWORK` | no | `1` | Lets a hosted page call the API on your own computer (local testing only) |
+| `API_SEARCH` | no | `enriched` | `raw` (default, same as the Streamlit UI) or `enriched` |
+| `ALLOWED_ORIGIN_REGEX` | no | | Sites allowed to call the API from a browser (default: Lovable and localhost) |
 
 ## Settings and presets
 
-All assistant settings live in `settings.json`: `defaults` plus named presets (`baseline`, `strict-0.0`). A preset stores only what differs from the defaults. `config.py` loads them, and recreates `settings.json` from built-in defaults if it is missing.
+All assistant settings live in `settings.json`: `defaults` plus named presets (`baseline` and `strict-0.0` on gpt-4o, `gemini-3.5-flash` and `gpt-5-minimal` with the parameters those models need, see `results/model_comparison_20261105.md`). A preset stores only what differs from the defaults. `config.py` loads them, and recreates `settings.json` from built-in defaults if it is missing.
 
 - **Fingerprint:** every combination of settings gets an 8-character code, shown in the UI sidebar and written to every log line. The same fingerprint means the same model, temperature, max tokens, conversation memory, system prompt, AI disclosure and extra parameters.
 - **Not in the fingerprint:** the corpus and search (logged separately as `corpus` and `retrieved_ids`), the passage instructions in `assistant.py`, and which model version the gateway serves under the name `gpt-4o`.
@@ -75,11 +84,12 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 | `retrieval.py` | BM25 keyword search over the manual passages; optional search-only questions per passage |
 | `chat.py` | Command-line chat (`--preset`, `--list-presets`) |
 | `app.py` | Streamlit web UI with presets, a settings panel and session statistics |
+| `api.py` | Web API (FastAPI) for the Lovable UI: `/config`, `/chat`, `/feedback`, protected by an access code |
+| `Dockerfile`, `requirements-api.txt` | Container for hosting the API (no Streamlit) |
 | `run.py` | npm-style task runner |
 | `eval_run.py` | Evaluation for every comparison step (`--corpus none`, `raw` or `enriched`) |
 | `measure_search.py` | Search hit rates, no model calls |
 | `make_search_questions.py` | Generates `data/search_questions.jsonl` |
-| `eval_step1.py` | First step-1 script, replaced by `eval_run.py`; to be removed |
 | `data/` | The organisers' files plus our generated search questions (see Data and licences) |
 | `results/` | Evaluation runs: one CSV and one settings file per run |
 | `requirements.txt` | Python packages |
@@ -87,13 +97,13 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 
 ## How an answer is made
 
-1. The customer's **current message** is searched in the manual (`retrieval.py`, BM25 keyword search). The 3 best passages are taken.
+1. The customer's **current message** is searched in the manual (`retrieval.py`, BM25 keyword search). The 3 best passages are taken. If the message matches the manual poorly (best score below 8.5, e.g. "I tried that but it didn't help"), it is treated as a follow-up and searched together with the customer's last 2 earlier messages. A new question scores higher and is searched on its own, so a change of topic is not mixed with the old one.
 2. The passages go into the **current user message, before the question**, with instructions: answer only from these passages, read menu paths without arrows ("Settings Picture Picture Mode") as Settings > Picture > Picture Mode, cite the passage ids, and if the passages do not answer the question, say so and offer a human colleague. The system prompt itself is unchanged.
 3. If **no passage matches**, the model is told so explicitly, so that it hands over instead of answering from its own knowledge.
 4. The conversation history keeps the customer's **plain messages**; earlier passages are not resent, so token cost does not grow with every turn.
 5. If `data/corpus.jsonl` is **missing**, the assistant stops with a clear error rather than answering without the manual.
 
-Known limits: the search looks only at the current message, so short follow-ups ("still nothing") search poorly; BM25 matches words, not meaning. The UI uses the raw corpus; the enriched search (passages plus generated questions) is used in the evaluation, and switching the UI to it is an open team decision.
+Known limits: BM25 matches words, not meaning. The follow-up threshold (8.5) was set on the golden questions and 10 follow-up phrases: real questions scored 9.8 or more, follow-ups 7.5 or less. A follow-up with strong manual words of its own ("still no sound from the soundbar") is searched on its own. The UI uses the raw corpus; the enriched search (passages plus generated questions) is used in the evaluation, and switching the UI to it is an open team decision.
 
 ## UI settings
 
@@ -108,6 +118,27 @@ The sidebar changes these settings live; each change applies from the next messa
 - AI disclosure text shown at the start of each conversation
 - Preset selector, **Reset to preset** and **Save as preset** (saved to `settings.json`); the sidebar shows the active preset and its fingerprint
 
+## Web API (for the Lovable UI)
+
+The Lovable app is only the front end. It calls `api.py`, which runs the same engine (`assistant.run_turn`) as the Streamlit UI and the evaluation, so what testers see is what we measured. No database is needed.
+
+- **Access:** every request except `/health` needs the header `X-Access-Code` (set `ACCESS_CODE` in `.env`). The gateway credentials stay on the server and never go to the browser or to Lovable.
+- **Conversation state** lives in the browser. Send the `history` from the previous `/chat` response with the next message. The returned history is trimmed to the preset's conversation memory, so keep your own list for display.
+- **Browsers** may call the API only from Lovable sites and localhost (`ALLOWED_ORIGIN_REGEX`).
+
+| Endpoint | Request | Response |
+|---|---|---|
+| `GET /health` | no code needed | `{"ok": true}` |
+| `GET /config` | | AI disclosure text, default preset, presets with their values (model, temperature, max tokens, memory, system prompt), models testers can pick (with notes and rules), limits, search |
+| `POST /chat` | `{"message", "history": [{"role", "content"}], "conversation_id"?, "preset"?, "settings"?: {"model", "temperature", "max_tokens", "history_turns", "system_prompt"}}`; `settings` holds only the changes from the preset | `answer`, `history`, `conversation_id`, `turn`, `preset` ("name (edited)" when changed), `model`, `fingerprint`, `retrieved_ids`, `usage`, `latency_s`, `settings` (the effective settings) |
+| `POST /feedback` | `{"conversation_id", "turn", "rating": "up"\|"down", "reason"?, "preset"?}`; reason is one of `wrong`, `incomplete`, `invented`, `should_hand_over`, `too_long`, `other` | `{"ok": true}` |
+
+Limits: messages up to 2,000 characters, history up to 40 messages, roles `user` and `assistant` only; temperature 0–1, max tokens 50–4,000, memory 0–20 turns, system prompt up to 8,000 characters.
+
+**Model rules:** testers can pick any model in `config.MODEL_RULES` (restrict with `API_MODELS`). The API gives each model what it needs to answer completely: gpt-5 and gpt-5-nano always get temperature 1 and `reasoningEffort: minimal`, the Gemini Flash models `minimal`, the Gemini Pro models at least 3,000 tokens, claude-opus-4-6 `none`. Options for another model (e.g. Gemini's reasoning effort) are dropped when the model changes. Changed settings get their own fingerprint, so they show up separately in the log.
+
+**Hosting:** Lovable's hosted app cannot reach `localhost`. For a short test session, expose the local API with a tunnel. For team testing over several days, run the container on a small cloud service (e.g. Azure Container Apps in Sweden Central, next to the gateway): `docker build -t smarttech-api .` and set `CLIENT_ID`, `CLIENT_SECRET` and `ACCESS_CODE` as secrets there. Logs inside the container are lost when it is replaced, so mount a volume on `/app/logs`.
+
 ## Notes on the gateway
 
 - The LLM runs behind a gateway hosted on Azure Container Apps in **Sweden Central** (EU).
@@ -116,9 +147,10 @@ The sidebar changes these settings live; each change applies from the next messa
 
 ## Logging and privacy
 
-- Every answer is logged to `logs/conversation_log.jsonl`: source (`ui`, `cli` or `eval-...`), preset and settings fingerprint, model and settings, `corpus` (`none` or `raw`), `retrieved_ids` (the passage ids sent to the model), input and output tokens, and response time. The token log is the basis for the cost-per-answer figure in the business case.
+- Every answer is logged to `logs/conversation_log.jsonl`: source (`ui`, `cli`, `api` or `eval-...`), preset and settings fingerprint, model and settings, `corpus` (`none`, `raw` or `enriched`), `retrieved_ids` (the passage ids sent to the model), `search_used_earlier` (true when a follow-up was searched with earlier messages), input and output tokens, and response time. The token log is the basis for the cost-per-answer figure in the business case.
 - Passage ids are not personal data, so logging them is safe.
 - The log stores **only the length** of messages, never the customer's text.
+- Tester ratings from the API go to `logs/feedback_log.jsonl`: conversation id, turn, up or down, a reason from a fixed list, and the preset. No free text, so no personal data.
 - The assistant tells users it is an AI (EU AI Act) and asks them not to share personal data (GDPR).
 - `logs/` and `.env` are git-ignored.
 
@@ -150,10 +182,10 @@ Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule n
 
 ## Roadmap
 
-1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), searching follow-ups together with the previous question, and deciding whether the UI uses the enriched search.
+1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Follow-ups are searched together with earlier messages (5 November). Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), and deciding whether the UI uses the enriched search.
 2. **Scope router**, not started: in scope, out of scope (warranty, orders, prices) or unclear. Also pending: the prompt's scope wording (hand over when answering needs the customer's own account, order or contract data).
 3. **Evidence gate and grounding check**, not started: answer only when the manual supports it, otherwise hand over. Tests showed that a keyword-score threshold alone is not enough.
-4. **Guided troubleshooting**: the prompt gives one or two checks at a time; search on follow-up messages still needs improving.
+4. **Guided troubleshooting**: the prompt gives one or two checks at a time; follow-up messages are now searched with the earlier question (in 17 of 20 test conversations the assistant kept troubleshooting instead of handing over).
 5. **Hand-over to an agent** with a ticket summary; **agent-assist view** for hotline agents. Not started.
 6. **Evaluation**: pipeline done; steps 1 and 2 run on the golden set, step 3 search measured. Still to do: agree the scoring rule, freeze the prompt, write the out-of-scope set, run the tickets once per step.
 
@@ -161,4 +193,4 @@ Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule n
 
 - `data/corpus.jsonl` (204 passages), `data/golden_seed.csv` (20 questions) and `data/tickets_tv.csv` (40 tickets) are the organisers' files. The corpus is based on RAGBench (`emanual` subset), CC BY 4.0, modified by the hackathon organisers. The golden questions, tickets and client fact sheet were written by the organisers for this event.
 - `data/search_questions.jsonl` was generated by us with GPT-4o from the corpus passages.
-- Housekeeping: `_to_delete/` (a leftover test log) and `eval_step1.py` can be removed.
+- `results/step1_*` files come from the first step-1 script (since replaced by `eval_run.py --corpus none`) and are kept as the original step-1 runs.

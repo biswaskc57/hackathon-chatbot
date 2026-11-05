@@ -2,7 +2,7 @@
 
     step 1: --corpus none   the assistant without the manual (GPT-4o's own knowledge)
     step 2: --corpus raw    the original corpus, keyword search (BM25), top 3 passages
-    step 3: --corpus enriched  (later: the enriched corpus, same search and settings)
+    step 3: --corpus enriched  same passages; search also uses data/search_questions.jsonl
 
 Every step uses the SAME settings (preset "eval", same fingerprint), so the corpus is the only
 thing that changes. Each question is a fresh conversation, sent through assistant.run_turn,
@@ -25,16 +25,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from assistant import LLMError, build_messages, run_turn
-from config import load_settings
+from config import SETTING_NAMES, load_settings
 from llm_client import APIClient, fold_system_messages
+from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, DEFAULT_TOP_K, BM25Index, load_corpus, load_glossary
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 RESULTS = ROOT / "results"
 
-CORPUS_FILES = {"raw": DATA / "corpus.jsonl", "enriched": DATA / "corpus.jsonl"}
-AIDS_FILES = {"enriched": DATA / "search_questions.jsonl"}   # step 3: same passages + customer-style questions for search
-from retrieval import DEFAULT_TOP_K
+# raw and enriched use the same passages; enriched also searches the customer-style questions (step 3).
+AIDS_FILES = {"enriched": DEFAULT_AIDS}
 TOP_K = DEFAULT_TOP_K
 
 # The golden set scores one complete answer, so evaluation asks for one. Same in every step.
@@ -122,23 +122,34 @@ def main() -> None:
     parser.add_argument("--set", choices=["golden", "tickets"], default="golden")
     parser.add_argument("--limit", type=int, help="only the first N questions (for a quick try)")
     parser.add_argument("--dry-run", action="store_true", help="no model call, no credentials needed")
+    parser.add_argument("--model", help="compare another model; changes the fingerprint (default: the baseline model)")
+    parser.add_argument("--params", help='model-specific settings as JSON, e.g. \'{"reasoningEffort": "minimal", '
+                        '"temperature": 1, "max_tokens": 3000}\'. Setting names (temperature, max_tokens) change '
+                        "that setting; other keys go to the gateway as extra parameters. Changes the fingerprint")
     args = parser.parse_args()
 
     settings = eval_settings()
+    if args.model:
+        settings = replace(settings, model=args.model)
+    if args.params:
+        overrides = json.loads(args.params)
+        own = {k: v for k, v in overrides.items() if k in SETTING_NAMES and k != "extra_params"}
+        extra = {**settings.extra_params, **{k: v for k, v in overrides.items() if k not in own}}
+        settings = replace(settings, **own, extra_params=extra)
     questions = load_questions(args.set)[: args.limit]
     corpus_text = load_corpus_text()
 
     index = None
     if args.corpus != "none":
-        from retrieval import BM25Index, load_corpus, load_glossary
-        index = BM25Index(load_corpus(CORPUS_FILES[args.corpus], AIDS_FILES.get(args.corpus)),
+        index = BM25Index(load_corpus(DEFAULT_CORPUS, AIDS_FILES.get(args.corpus)),
                           glossary=load_glossary() if args.corpus == "enriched" else None)  # step 3 = questions + glossary
 
     def retrieve(question: str) -> list:
         return [p for p, _ in index.search(question, k=TOP_K)] if index else []
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
-    run_id = f"corpus-{args.corpus}_{args.set}_{stamp}"
+    model_part = f"_{args.model}" if args.model else ""
+    run_id = f"corpus-{args.corpus}_{args.set}{model_part}_{stamp}"
     retrieval_desc = f"bm25 top {TOP_K}" if index else "none"
     print(f"[{run_id}] corpus: {args.corpus} | retrieval: {retrieval_desc} | preset: {settings.preset} | "
           f"fingerprint: {settings.fingerprint()} | model: {settings.model} | questions: {len(questions)}")
@@ -174,7 +185,7 @@ def main() -> None:
                                   conversation_id=f"{run_id}-{q['id']}", turn=1,
                                   source=f"eval-corpus-{args.corpus}-{args.set}",
                                   passages=passages if index else None,
-                                  use_corpus=index is not None)
+                                  use_corpus=index is not None, corpus=args.corpus)
             except LLMError as exc:
                 print(f"\nStopped at {q['id']}: {exc}\n{i - 1} answers saved in {out_file}")
                 sys.exit(1)

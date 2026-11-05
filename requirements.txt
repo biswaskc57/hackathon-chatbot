@@ -1,3 +1,5 @@
-requests
-python-dotenv
-streamlit
+python-dotenv==1.2.4
+requests==2.34.2
+streamlit==1.66.1
+fastapi==0.162.0
+uvicorn==0.54.0

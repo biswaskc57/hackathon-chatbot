@@ -19,6 +19,12 @@ DEFAULT_TOP_K = 3   # passages sent with each question
 DEFAULT_AIDS = Path(__file__).resolve().parent / "data" / "search_questions.jsonl"  # customer-style questions (search only)
 DEFAULT_GLOSSARY = Path(__file__).resolve().parent / "data" / "glossary.csv"  # customer words -> manual words (search only)
 
+# A follow-up such as "I tried that but it didn't help" matches no passage well on its own. If the best score
+# for the current message is below this, the search adds the customer's earlier messages. Measured on the
+# golden questions: real questions score 9.8 or more, follow-ups 7.5 or less (raw and enriched search).
+FOLLOW_UP_MAX_SCORE = 8.5
+FOLLOW_UP_EARLIER_MESSAGES = 2
+
 # Very common words that say nothing about the topic. "not", "no" are kept: they matter in symptoms.
 STOPWORDS = set("""a an and are as at be but by can do does for from how i if in into is it its
 me my of on or so that the then there this to was we what when where which while who why will
@@ -98,6 +104,19 @@ class BM25Index:
         return [(p, s) for p, s in scores[:k] if s > 0]
 
 
+def search_turn(index: BM25Index, text: str, earlier: list[str], k: int = DEFAULT_TOP_K) -> tuple[list[Passage], bool]:
+    """Passages for one customer message; earlier = the customer's earlier messages, oldest first.
+
+    Returns (passages, used_earlier). A new question is searched on its own, so a change of topic is not
+    mixed with the old one. A weak match (a follow-up) is searched together with the last earlier messages.
+    """
+    hits = index.search(text, k=k)
+    if earlier and (not hits or hits[0][1] < FOLLOW_UP_MAX_SCORE):
+        query = " ".join(earlier[-FOLLOW_UP_EARLIER_MESSAGES:] + [text])
+        return [p for p, _ in index.search(query, k=k)], True
+    return [p for p, _ in hits], False
+
+
 def load_aids(path: Path) -> dict:
     """passage id -> list of customer-style questions."""
     if not Path(path).exists():
@@ -127,15 +146,16 @@ def load_corpus(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> l
     return passages
 
 
-_index = None
+_indexes: dict = {}
 
 
-def get_index(path: Path = DEFAULT_CORPUS) -> BM25Index:
-    """Build the index once and reuse it."""
-    global _index
-    if _index is None:
-        _index = BM25Index(load_corpus(path))
-    return _index
+def get_index(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> BM25Index:
+    """Build each index once and reuse it. aids_path=DEFAULT_AIDS gives the enriched search
+    (customer-style questions plus the glossary), the same as eval_run.py --corpus enriched."""
+    key = (str(path), str(aids_path) if aids_path else None)
+    if key not in _indexes:
+        _indexes[key] = BM25Index(load_corpus(path, aids_path), glossary=load_glossary() if aids_path else None)
+    return _indexes[key]
 
 
 if __name__ == "__main__":
