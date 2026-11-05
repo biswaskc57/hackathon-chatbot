@@ -7,7 +7,7 @@ Used by chat.py, app.py and (later) the evaluation scripts.
 import hashlib
 import json
 import re
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 
 SETTINGS_FILE = Path(__file__).resolve().parent / "settings.json"
@@ -60,6 +60,41 @@ class Settings:
 
 
 SETTING_NAMES = [f.name for f in fields(Settings) if f.name != "preset"]
+
+
+# What each gateway model needs to give a complete answer (tested 5 November 2026, see
+# results/model_comparison_20261105.md). temperature: the only value the model accepts (None: any).
+# min_max_tokens: hidden reasoning uses the answer budget, so smaller limits cut answers off.
+MODEL_RULES: dict[str, dict] = {
+    "gpt-4o": {"note": "baseline"},
+    "gemini-3.5-flash": {"extra": {"reasoningEffort": "minimal"}, "note": "best value"},
+    "gpt-5": {"temperature": 1, "extra": {"reasoningEffort": "minimal"}, "note": "temperature fixed at 1"},
+    "claude-opus-4-8": {"note": "safest, most expensive"},
+    "gpt-5-nano": {"temperature": 1, "extra": {"reasoningEffort": "minimal"}, "note": "cheapest, weaker"},
+    "gemini-3.1-flash-lite": {"extra": {"reasoningEffort": "minimal"}, "note": "cheap, weaker"},
+    "claude-opus-4-6": {"extra": {"reasoningEffort": "none"}, "note": "older Opus"},
+    "gemini-2.5-pro": {"min_max_tokens": 3000, "note": "slow (10+ s)"},
+    "gemini-3.1-pro-preview": {"extra": {"reasoningEffort": "low"}, "min_max_tokens": 3000, "note": "slow (10+ s)"},
+    "sonar-pro": {"note": "web-search model, not for manual-only answers"},
+    "sonar-reasoning-pro": {"note": "web-search model, not for manual-only answers"},
+}
+
+
+def apply_model_rules(settings: Settings) -> Settings:
+    """Give a model the options it needs: fixed temperature, reasoning effort, minimum answer budget.
+
+    Extra parameters from another model (e.g. reasoningEffort for Gemini) are replaced by this model's own.
+    Unknown models are returned unchanged.
+    """
+    rules = MODEL_RULES.get(settings.model)
+    if rules is None:
+        return settings
+    changes: dict = {"extra_params": dict(rules.get("extra", {}))}
+    if rules.get("temperature") is not None:
+        changes["temperature"] = rules["temperature"]
+    if rules.get("min_max_tokens"):
+        changes["max_tokens"] = max(int(settings.max_tokens), rules["min_max_tokens"])
+    return replace(settings, **changes)
 
 
 def _default_store() -> dict:

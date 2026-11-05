@@ -13,7 +13,7 @@ from pathlib import Path
 
 from config import Settings
 from llm_client import APIClient, LLMError, parse_usage  # noqa: F401  (LLMError re-exported for callers)
-from retrieval import get_index, search_turn
+from retrieval import DEFAULT_AIDS, get_index, search_turn
 
 LOG_FILE = Path(__file__).resolve().parent / "logs" / "conversation_log.jsonl"
 
@@ -24,6 +24,7 @@ class TurnResult:
     history: list        # updated user/assistant history, to pass into the next turn
     usage: dict          # input_tokens, output_tokens, total_tokens, raw_usage
     latency_s: float
+    retrieved_ids: list | None = None   # manual passages sent with this question (None: no manual)
 
 
 def new_conversation_id() -> str:
@@ -83,12 +84,13 @@ def run_turn(
     passages: give them yourself (the evaluation does), or leave None to search here. A follow-up that matches
     the manual poorly ("still nothing") is searched together with the customer's earlier messages.
     use_corpus=False: no manual at all (evaluation step 1 only).
-    corpus: the label written to the log when passages are used ("raw" or "enriched").
+    corpus: "raw" or "enriched": which search to use when searching here, and the label written to the log.
     """
     used_earlier = False
     if passages is None and use_corpus:
         earlier = [m["content"] for m in history if m["role"] == "user"]
-        passages, used_earlier = search_turn(get_index(), user_text, earlier)
+        index = get_index(aids_path=DEFAULT_AIDS if corpus == "enriched" else None)
+        passages, used_earlier = search_turn(index, user_text, earlier)
     if not use_corpus:
         passages = None
     messages, trimmed = build_messages(history, user_text, settings, passages)
@@ -130,4 +132,5 @@ def run_turn(
         history=trimmed + [{"role": "assistant", "content": answer}],
         usage=usage,
         latency_s=latency,
+        retrieved_ids=[p.id for p in passages] if passages is not None else None,
     )

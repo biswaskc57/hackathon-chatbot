@@ -122,15 +122,15 @@ def load_corpus(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> l
     return passages
 
 
-_index = None
+_indexes: dict = {}
 
 
-def get_index(path: Path = DEFAULT_CORPUS) -> BM25Index:
-    """Build the index once and reuse it."""
-    global _index
-    if _index is None:
-        _index = BM25Index(load_corpus(path))
-    return _index
+def get_index(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> BM25Index:
+    """Build each index once and reuse it. aids_path=DEFAULT_AIDS gives the enriched search."""
+    key = (str(path), str(aids_path) if aids_path else None)
+    if key not in _indexes:
+        _indexes[key] = BM25Index(load_corpus(path, aids_path))
+    return _indexes[key]
 
 
 if __name__ == "__main__":

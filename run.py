@@ -5,6 +5,7 @@ Usage:
     python3 run.py build        create .venv and install requirements (once)
     python3 run.py ui           start the Streamlit UI
     python3 run.py chat         start the command-line chat
+    python3 run.py api          start the web API for the Lovable UI (http://localhost:8000/docs)
     python3 run.py test-gateway one test call to the LLM gateway
 
 Add your own tasks to TASKS below, like "scripts" in package.json.
@@ -24,10 +25,11 @@ TASKS = {
     "build": ("Create .venv and install requirements", None),
     "ui": ("Start the Streamlit UI", "{py} -m streamlit run app.py"),
     "chat": ("Start the command-line chat", "{py} chat.py"),
+    "api": ("Start the web API for the Lovable UI", "{py} -m uvicorn api:app --host 0.0.0.0 --port 8000"),
     "test-gateway": ("One test call to the LLM gateway", "{py} llm_client.py"),
 }
 
-NEEDS_ENV_FILE = {"ui", "chat", "test-gateway"}
+NEEDS_ENV_FILE = {"ui", "chat", "api", "test-gateway"}
 
 
 def build() -> int:
