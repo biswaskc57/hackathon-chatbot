@@ -51,7 +51,7 @@ def tokenize(text: str) -> list[str]:
 
 
 def load_glossary(path: Path = DEFAULT_GLOSSARY) -> list[tuple]:
-    """Rows of glossary.csv -> [(regex matching any customer term, manual terms to add)]."""
+    """Rows of glossary.csv -> [(regex for the customer terms, manual terms to add, regex for 'unless' words or None)]."""
     if not Path(path).exists():
         return []
     entries = []
@@ -59,15 +59,23 @@ def load_glossary(path: Path = DEFAULT_GLOSSARY) -> list[tuple]:
         for row in csv.DictReader(f):
             terms = [t.strip().lower() for t in (row.get("customer_terms") or "").split(";") if t.strip()]
             manual = (row.get("manual_terms") or "").strip()
+            stop = [t.strip().lower() for t in (row.get("unless") or "").split(";") if t.strip()]
             if terms and manual:
                 pattern = re.compile(r"\b(" + "|".join(re.escape(t) for t in terms) + r")\b", re.I)
-                entries.append((pattern, manual))
+                unless = re.compile(r"\b(" + "|".join(re.escape(t) for t in stop) + r")\b", re.I) if stop else None
+                entries.append((pattern, manual, unless))
     return entries
 
 
+def entry_fires(entry: tuple, query: str) -> bool:
+    """An entry fires when a customer term is in the query and none of its 'unless' words are."""
+    pattern, _, unless = entry
+    return bool(pattern.search(query)) and not (unless and unless.search(query))
+
+
 def expand_query(query: str, glossary: list[tuple]) -> str:
-    """Add the manual's words for every glossary term found. The customer's own words are kept."""
-    extra = [manual for pattern, manual in glossary if pattern.search(query)]
+    """Add the manual's words for every glossary entry that fires. The customer's own words are kept."""
+    extra = [entry[1] for entry in glossary if entry_fires(entry, query)]
     return query + (" " + " ".join(extra) if extra else "")
 
 

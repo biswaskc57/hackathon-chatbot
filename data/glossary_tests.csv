@@ -1,0 +1,12 @@
+query,expected_passages,tests_entry,kind,source
+Can my TV remote also switch off my cable box?,p0160|p0161|p0219,soundbar; set-top box,should help,written from passage titles
+Can I control my set-top box with the TV remote?,p0160|p0161|p0219,soundbar; set-top box,should help,written from passage titles
+My soundbar makes no sound at all,p0227,soundbar; set-top box,must not hurt,written from passage titles
+My Bluetooth soundbar keeps disconnecting,p0241|p0187,soundbar; set-top box,must not hurt,written from passage titles
+How does voice search work on this TV?,p0134|p0201|p0040|p0180|p0038,voice search; microphone button,should help,written from passage titles
+Where is the microphone button and what does it do?,p0134|p0201|p0040|p0180|p0038,voice search; microphone button,should help,written from passage titles
+How do I turn on subtitles?,p0101,subtitles; captions,should help,written from passage titles
+Which subtitle file formats work for videos on a USB stick?,p0220,subtitles; captions,must not hurt,written from passage titles
+How do I move apps around on the home screen?,p0068|p0067,home screen,should help,written from passage titles
+How do I pair a new remote with the TV?,p0107|p0108,remote; TV remote; my remote,should help,written from passage titles
+My remote stopped working after I dropped it,p0236,remote; TV remote; my remote,must not hurt,written from passage titles
