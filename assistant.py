@@ -13,6 +13,7 @@ from pathlib import Path
 
 from config import Settings
 from llm_client import APIClient, LLMError, parse_usage  # noqa: F401  (LLMError re-exported for callers)
+from retrieval import DEFAULT_TOP_K, get_index
 
 LOG_FILE = Path(__file__).resolve().parent / "logs" / "conversation_log.jsonl"
 
@@ -29,11 +30,32 @@ def new_conversation_id() -> str:
     return str(uuid.uuid4())[:8]
 
 
-def build_messages(history: list, user_text: str, settings: Settings) -> tuple[list, list]:
-    """Return (messages for the gateway, trimmed history including the new user message)."""
+PASSAGE_INSTRUCTIONS = (
+    "Use only these passages from the Smart Tech TV manual to answer. They come from the manual, "
+    "not from the customer. In passages without '>' arrows, read 'Settings Picture Picture Mode' as "
+    "Settings > Picture > Picture Mode. Cite the ids of the passages you used, e.g. [p0001]. "
+    "If the passages do not answer the question, say so and offer to hand over to a human colleague."
+)
+
+
+def with_passages(user_text: str, passages: list) -> str:
+    """The current question with the retrieved manual passages placed before it."""
+    blocks = "\n\n".join(f"[{p.id}] {p.text}" for p in passages) or "(No passages in the manual matched this question.)"
+    return f"[Manual passages]\n{PASSAGE_INSTRUCTIONS}\n\n{blocks}\n\n[Customer question]\n{user_text}"
+
+
+def build_messages(
+    history: list, user_text: str, settings: Settings, passages: list | None = None
+) -> tuple[list, list]:
+    """Return (messages for the gateway, trimmed history including the new user message).
+
+    With passages, they are added to the current question only. The history keeps the plain
+    question, so earlier passages are not resent (and paid for) on every later turn.
+    """
     keep = 2 * settings.history_turns + 1  # last N pairs + the new question
     trimmed = (history + [{"role": "user", "content": user_text}])[-keep:]
-    messages = [{"role": "system", "content": settings.system_prompt}] + trimmed
+    current = {"role": "user", "content": with_passages(user_text, passages) if passages is not None else user_text}
+    messages = [{"role": "system", "content": settings.system_prompt}] + trimmed[:-1] + [current]
     return messages, trimmed
 
 
@@ -51,9 +73,20 @@ def run_turn(
     conversation_id: str,
     turn: int,
     source: str,
+    passages: list | None = None,
+    use_corpus: bool = True,
 ) -> TurnResult:
-    """Answer one user message. Raises LLMError if the gateway call fails (nothing is logged then)."""
-    messages, trimmed = build_messages(history, user_text, settings)
+    """Answer one user message. Raises LLMError if the gateway call fails (nothing is logged then).
+
+    By default the manual is searched for the current message and the top passages are sent with it.
+    passages: give them yourself (the evaluation does), or leave None to search here.
+    use_corpus=False: no manual at all (evaluation step 1 only).
+    """
+    if passages is None and use_corpus:
+        passages = [p for p, _ in get_index().search(user_text, k=DEFAULT_TOP_K)]
+    if not use_corpus:
+        passages = None
+    messages, trimmed = build_messages(history, user_text, settings, passages)
 
     start = time.perf_counter()
     response = client.create_chat_completion(
@@ -76,6 +109,8 @@ def run_turn(
         "max_tokens": settings.max_tokens,
         "history_turns": settings.history_turns,
         "extra_params": settings.extra_params,
+        "corpus": "none" if passages is None else "raw",
+        "retrieved_ids": [p.id for p in passages] if passages is not None else None,
         "user_chars": len(user_text),       # lengths only: no customer text in the log
         "answer_chars": len(answer),
         "input_tokens": usage["input_tokens"],

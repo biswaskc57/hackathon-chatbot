@@ -1,0 +1,29 @@
+id,category,kind,question,answer,reference_answer,must_include,expected_behaviour,source_passage_ids,retrieved_ids,retrieval_hit,cited_ids,unknown_menu_paths,unknown_bold_terms,input_tokens,output_tokens,latency_s,score (correct/partly/wrong/handover),invented_content (y/n),scorer,notes
+Q01,Picture & Sound,how-to,"Which picture mode is the easiest on the eyes, and where do I select it?","The picture mode that is easiest on the eyes is **Natural**, as it reduces eye strain for a comfortable viewing experience. 
+
+To select it, follow these steps:  
+1. Go to **Settings > Picture > Picture Mode**.  
+2. Choose **Natural** from the available options.  
+
+Reference: [p0001]",Select Natural in Settings > Picture > Picture Mode. It reduces eye strain for a comfortable viewing experience. The function may not be supported depending on the model.,Settings > Picture > Picture Mode; select Natural; it reduces eye strain,answer,p0001,p0046|p0001|p0226,y,p0001,,,973,67,2.16,,,,
+Q02,Picture & Sound,how-to,How do I change the picture size?,"To change the picture size on your Smart Tech TV, follow these steps:
+
+1. Go to **Settings > Picture > Picture Size Settings > Picture Size**.
+2. Select your desired picture size. The available options are:
+   - **16:9 Standard**
+   - **Custom**
+   - **4:3**
+
+**Note:**
+- If you select **Custom**, you can further adjust the picture size and position by going to **Settings > Picture > Picture Size Settings > Zoom and Position**. [p0019], [p0020]
+- Be cautious when using the **4:3** mode for extended periods, as it may cause afterimages on the screen. [p0020]
+
+Let me know if you need further assistance!","Open Settings > Picture > Picture Size Settings > Picture Size and choose a size: 16:9 Standard, Custom or 4:3. Do not watch in 4:3 mode for long periods, because the black bars can leave temporary or permanent after-images. The supported sizes depend on the input signal.","Settings > Picture > Picture Size Settings > Picture Size; options 16:9 Standard, Custom, 4:3",answer,p0020,p0019|p0020|p0118,y,p0019|p0020,,,739,152,2.75,,,,
+Q03,Picture & Sound,how-to,How do I choose which speakers the TV uses for sound?,"To choose which speakers the TV uses for sound, follow these steps:
+
+1. Go to **Settings > Sound > Sound Output**.
+2. Select the desired speaker option (e.g., TV Speaker, external soundbar, or Bluetooth speaker).
+
+Note: External speakers may not be controlled with the Smart Tech Remote, and some sound menus may not be available when an external speaker is enabled. 
+
+Source: [p0051]","Open Settings > Sound > Sound Output and select the speakers the TV uses for audio output. External speakers may not be controllable with the Smart Tech Remote, and some sound menus are not supported while an external speaker is enabled.",Settings > Sound > Sound Output; select the speakers,answer,p0051,p0051|p0014|p0092,y,p0051,,,884,86,2.04,,,,
