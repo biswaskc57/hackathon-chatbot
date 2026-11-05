@@ -104,14 +104,16 @@ class BM25Index:
         return [(p, s) for p, s in scores[:k] if s > 0]
 
 
-def search_turn(index: BM25Index, text: str, earlier: list[str], k: int = DEFAULT_TOP_K) -> tuple[list[Passage], bool]:
+def search_turn(index: BM25Index, text: str, earlier: list[str], k: int = DEFAULT_TOP_K,
+                follow_up: bool = True) -> tuple[list[Passage], bool]:
     """Passages for one customer message; earlier = the customer's earlier messages, oldest first.
 
     Returns (passages, used_earlier). A new question is searched on its own, so a change of topic is not
-    mixed with the old one. A weak match (a follow-up) is searched together with the last earlier messages.
+    mixed with the old one. A weak match (a follow-up) is searched together with the last earlier messages,
+    unless follow_up is False.
     """
     hits = index.search(text, k=k)
-    if earlier and (not hits or hits[0][1] < FOLLOW_UP_MAX_SCORE):
+    if follow_up and earlier and (not hits or hits[0][1] < FOLLOW_UP_MAX_SCORE):
         query = " ".join(earlier[-FOLLOW_UP_EARLIER_MESSAGES:] + [text])
         return [p for p, _ in index.search(query, k=k)], True
     return [p for p, _ in hits], False
@@ -149,12 +151,12 @@ def load_corpus(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> l
 _indexes: dict = {}
 
 
-def get_index(path: Path = DEFAULT_CORPUS, aids_path: Path | None = None) -> BM25Index:
-    """Build each index once and reuse it. aids_path=DEFAULT_AIDS gives the enriched search
-    (customer-style questions plus the glossary), the same as eval_run.py --corpus enriched."""
-    key = (str(path), str(aids_path) if aids_path else None)
+def get_index(search_questions: bool = False, glossary: bool = False, path: Path = DEFAULT_CORPUS) -> BM25Index:
+    """Build each search variant once and reuse it (the Settings fields of the same names choose it)."""
+    key = (str(path), search_questions, glossary)
     if key not in _indexes:
-        _indexes[key] = BM25Index(load_corpus(path, aids_path), glossary=load_glossary() if aids_path else None)
+        _indexes[key] = BM25Index(load_corpus(path, DEFAULT_AIDS if search_questions else None),
+                                  glossary=load_glossary() if glossary else None)
     return _indexes[key]
 
 

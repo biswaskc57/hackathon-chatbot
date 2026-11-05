@@ -29,7 +29,6 @@ from llm_client import APIClient
 load_dotenv()
 
 ACCESS_CODE = os.getenv("ACCESS_CODE", "")
-SEARCH = os.getenv("API_SEARCH", "raw")                       # "raw" or "enriched"
 DEFAULT_PRESET = os.getenv("API_PRESET") or default_preset()   # preset used when the UI does not pick one
 # Presets testers may choose in the UI. Empty: all presets in settings.json.
 ALLOWED_PRESETS = [p.strip() for p in os.getenv("API_PRESETS", "").split(",") if p.strip()]
@@ -45,9 +44,6 @@ ORIGIN_REGEX = os.getenv(
 # Only for local testing; the access code is still required.
 ALLOW_PRIVATE_NETWORK = os.getenv("ALLOW_PRIVATE_NETWORK", "") == "1"
 FEEDBACK_LOG = Path(__file__).resolve().parent / "logs" / "feedback_log.jsonl"
-
-if SEARCH not in {"raw", "enriched"}:
-    raise SystemExit("API_SEARCH must be 'raw' or 'enriched'.")
 
 app = FastAPI(title="Smart Tech Support Assistant API", version="1")
 app.add_middleware(
@@ -149,7 +145,7 @@ def health() -> dict:
 
 def preset_values(s: Settings) -> dict:
     return {"model": s.model, "temperature": s.temperature, "max_tokens": s.max_tokens,
-            "history_turns": s.history_turns, "system_prompt": s.system_prompt}
+            "history_turns": s.history_turns, "system_prompt": s.system_prompt, "search": s.search_label()}
 
 
 @app.get("/config", dependencies=[Depends(require_access_code)])
@@ -164,7 +160,7 @@ def get_config() -> dict:
                     "fixed_temperature": MODEL_RULES[m].get("temperature"),
                     "min_max_tokens": MODEL_RULES[m].get("min_max_tokens")} for m in ALLOWED_MODELS],
         "limits": LIMITS,
-        "search": SEARCH,
+        "search": s.search_label(),   # of the default preset; each preset has its own search settings
     }
 
 
@@ -192,7 +188,7 @@ def chat(req: ChatRequest) -> ChatResponse:
     turn = sum(m["role"] == "user" for m in history) + 1
     try:
         result = run_turn(client(), history, req.message.strip(), settings, conversation_id, turn,
-                          source="api", corpus=SEARCH)
+                          source="api")
     except LLMError as exc:
         raise HTTPException(502, f"The assistant could not answer: {exc}") from exc
     u = result.usage

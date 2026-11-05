@@ -41,9 +41,9 @@ Not `run.py` tasks yet; run them with the project's Python:
 
 | Command | What it does |
 |---|---|
-| `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched, golden set and tickets (tickets as totals only) |
-| `.venv/bin/python eval_run.py --corpus raw --set golden --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
-| `.venv/bin/python eval_run.py --corpus none\|raw\|enriched --set golden\|tickets [--limit N]` | Run an evaluation step and write the results to `results/` |
+| `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched vs enriched + glossary, golden set only. `--tickets` adds the blind ticket set: final run only |
+| `.venv/bin/python eval_run.py --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
+| `.venv/bin/python eval_run.py [--preset NAME] [--corpus none\|raw\|enriched] [--set golden\|tickets] [--limit N]` | Run a test set with a preset (default `baseline`); `--corpus` overrides the preset's search |
 | `... eval_run.py --corpus raw --model gpt-5 --params '{"temperature": 1, "reasoningEffort": "minimal"}'` | Same, with another model and the parameters it needs (changes the fingerprint). See `results/model_comparison_20261105.md` |
 | `.venv/bin/python make_search_questions.py [--limit N]` | Generate customer-style search questions for each passage (needs the gateway; resumes where it stopped) |
 
@@ -62,15 +62,15 @@ Not `run.py` tasks yet; run them with the project's Python:
 | `API_PRESETS` | no | `baseline,gemini-3.5-flash,gpt-5-minimal` | Presets testers may pick in the UI (default: all) |
 | `API_MODELS` | no | `gpt-4o,gemini-3.5-flash,gpt-5` | Models testers may pick in the settings panel (default: all in `config.MODEL_RULES`) |
 | `ALLOW_PRIVATE_NETWORK` | no | `1` | Lets a hosted page call the API on your own computer (local testing only) |
-| `API_SEARCH` | no | `enriched` | `raw` (default, same as the Streamlit UI) or `enriched` |
 | `ALLOWED_ORIGIN_REGEX` | no | | Sites allowed to call the API from a browser (default: Lovable and localhost) |
 
 ## Settings and presets
 
 All assistant settings live in `settings.json`: `defaults` plus named presets (`baseline` and `strict-0.0` on gpt-4o, `gemini-3.5-flash` and `gpt-5-minimal` with the parameters those models need, see `results/model_comparison_20261105.md`). A preset stores only what differs from the defaults. `config.py` loads them, and recreates `settings.json` from built-in defaults if it is missing.
 
-- **Fingerprint:** every combination of settings gets an 8-character code, shown in the UI sidebar and written to every log line. The same fingerprint means the same model, temperature, max tokens, conversation memory, system prompt, AI disclosure and extra parameters.
-- **Not in the fingerprint:** the corpus and search (logged separately as `corpus` and `retrieved_ids`), the passage instructions in `assistant.py`, and which model version the gateway serves under the name `gpt-4o`.
+- **Search settings** are part of each preset: `use_manual`, `search_questions` (also search the generated customer questions), `glossary` (add manual words for customer words from `data/glossary.csv`), `top_k` and `follow_up_search`. All presets use the raw search today; a preset with `"search_questions": true, "glossary": true` gives the enriched search in every front end.
+- **Fingerprint:** every combination of settings gets an 8-character code, shown in the UI sidebar and written to every log line. The same fingerprint means the same model, temperature, max tokens, conversation memory, system prompt, AI disclosure, extra parameters and search settings. Since 5 November the search settings are included, so all fingerprints changed once (`baseline` is now `f7a3ba0d`; the earlier evaluation fingerprint `a9a0f383` is now `703d30f8` for the raw search and `f44b3bd4` for the enriched search). Earlier runs stay comparable through their `_settings.json` files.
+- **Not in the fingerprint:** the corpus and glossary file contents, the passage instructions in `assistant.py`, and which model version the gateway serves under the name `gpt-4o`.
 - **The system prompt exists twice:** in `settings.json` (used) and in `config.py` (fallback). Change both.
 
 ## Project structure
@@ -87,7 +87,7 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 | `api.py` | Web API (FastAPI) for the Lovable UI: `/config`, `/chat`, `/feedback`, protected by an access code |
 | `Dockerfile`, `requirements-api.txt` | Container for hosting the API (no Streamlit) |
 | `run.py` | npm-style task runner |
-| `eval_run.py` | Evaluation for every comparison step (`--corpus none`, `raw` or `enriched`) |
+| `eval_run.py` | Evaluation: test set x preset, with `--corpus` for the corpus comparison steps |
 | `measure_search.py` | Search hit rates, no model calls |
 | `make_search_questions.py` | Generates `data/search_questions.jsonl` |
 | `data/` | The organisers' files plus our generated search questions (see Data and licences) |
@@ -162,11 +162,11 @@ We compare three versions of the assistant in which **only the corpus changes**:
 |---|---|---|
 | 1 | `none` | No manual: GPT-4o's own knowledge |
 | 2 | `raw` | The 3 best passages from the original corpus |
-| 3 | `enriched` | The same, but the search also uses the generated customer-style questions |
+| 3 | `enriched` | The same, but the search also uses the generated customer-style questions and the glossary |
 
-- **Fixed settings:** every run uses the `eval` settings defined in `eval_run.py` on top of the `baseline` preset: temperature 0, max 800 tokens, no conversation memory, and the baseline prompt plus one line asking for all relevant steps in one answer. Fingerprint `a9a0f383`. If the prompt in `settings.json` changes, the fingerprint changes and earlier steps must be rerun.
-- **Test sets:** `golden_seed.csv` (20 questions) is the development set, run as often as needed. `tickets_tv.csv` (40) is held out: run once per step, only after the prompt is frozen, and never inspect ticket misses or use tickets to write prompts, questions or glossary entries. Our own out-of-scope set (warranty, repairs, returns, orders, accessories, prices) is still to be written.
-- **Results files:** each run writes `results/corpus-<step>_<set>_<time>.csv` with one row per question (retrieved ids, search hit, cited ids, hints for menu paths and bold terms not found in the manual, tokens) and empty columns for scoring by hand: correct / partly / wrong / hand-over, and invented content y/n. The hints are pointers for the scorer, not verdicts. A `_settings.json` file records the exact settings.
+- **Fixed settings:** every run uses the `eval` settings defined in `eval_run.py` on top of the chosen preset (default `baseline`): temperature 0, max 800 tokens, no conversation memory, and the preset's prompt plus one line asking for all relevant steps in one answer. The preset name in results is `eval-<preset>`. If the prompt in `settings.json` changes, the fingerprint changes and earlier steps must be rerun.
+- **Test sets:** `golden_seed.csv` (20 questions) is the development set, run as often as needed. `tickets_tv.csv` (40) is held out: run once per step, only after the prompt is frozen, and never inspect ticket misses or use tickets to write prompts, questions or glossary entries. Ticket *search* hit rates were printed during development until 5 November, and glossary entries written from tickets were removed that day; the answer-level ticket run has not been done. Our own out-of-scope set (warranty, repairs, returns, orders, accessories, prices) is still to be written.
+- **Results files:** each run writes `results/<date>_<preset>_<fingerprint>_<set>.jsonl` (one line per case, for scripts) and a `.csv` with the same name: one row per question (retrieved ids, search hit, cited ids, hints for menu paths and bold terms not found in the manual, tokens) and empty columns for scoring by hand: correct / partly / wrong / hand-over, and invented content y/n. The hints are pointers for the scorer, not verdicts. A `_settings.json` file records the exact settings.
 - **Customer-style questions:** `data/search_questions.jsonl` holds 5 questions per passage, generated by GPT-4o from the passage text only (never from the tickets or golden questions). They are used for search only and never shown to customers. One-off cost: 105,972 input and 16,045 output tokens, about $0.43 at list price. Spot-check them and set `"reviewed": true` on the ones checked.
 
 ### Results so far (4 to 5 November 2026)
@@ -182,7 +182,7 @@ Answer quality on the golden set, step 2 (one scorer, first pass, scoring rule n
 
 ## Roadmap
 
-1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Follow-ups are searched together with earlier messages (5 November). Next: a glossary for named concepts (e.g. soundbar or set-top box → Anynet+, Universal Remote), and deciding whether the UI uses the enriched search.
+1. **Retrieval (RAG)**, done: BM25, 3 best passages, cited passage ids, enriched search with generated questions. Follow-ups are searched together with earlier messages (5 November). Glossary for named concepts (`data/glossary.csv`, from the golden set only). Next: see `results/project_analysis_20261105.md` (ingest clean-up, hybrid search, query rewriting, rerank).
 2. **Scope router**, not started: in scope, out of scope (warranty, orders, prices) or unclear. Also pending: the prompt's scope wording (hand over when answering needs the customer's own account, order or contract data).
 3. **Evidence gate and grounding check**, not started: answer only when the manual supports it, otherwise hand over. Tests showed that a keyword-score threshold alone is not enough.
 4. **Guided troubleshooting**: the prompt gives one or two checks at a time; follow-up messages are now searched with the earlier question (in 17 of 20 test conversations the assistant kept troubleshooting instead of handing over).

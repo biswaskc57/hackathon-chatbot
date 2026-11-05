@@ -13,7 +13,7 @@ from pathlib import Path
 
 from config import Settings
 from llm_client import APIClient, LLMError, parse_usage  # noqa: F401  (LLMError re-exported for callers)
-from retrieval import DEFAULT_AIDS, get_index, search_turn
+from retrieval import get_index, search_turn
 
 LOG_FILE = Path(__file__).resolve().parent / "logs" / "conversation_log.jsonl"
 
@@ -75,24 +75,22 @@ def run_turn(
     turn: int,
     source: str,
     passages: list | None = None,
-    use_corpus: bool = True,
-    corpus: str = "raw",
 ) -> TurnResult:
     """Answer one user message. Raises LLMError if the gateway call fails (nothing is logged then).
 
-    By default the manual is searched for the current message and the top passages are sent with it.
-    passages: give them yourself (the evaluation does), or leave None to search here. A follow-up that matches
-    the manual poorly ("still nothing") is searched together with the customer's earlier messages.
-    use_corpus=False: no manual at all (evaluation step 1 only).
-    corpus: "raw" or "enriched": which search to use when searching here, and the label written to the log.
+    The search follows the settings: settings.use_manual (False: no manual, evaluation step 1 only),
+    search_questions, glossary, top_k and follow_up_search (a follow-up that matches the manual poorly,
+    "still nothing", is searched together with the customer's earlier messages).
+    passages: give them yourself (the evaluation does), or leave None to search here.
     """
     used_earlier = False
-    if passages is None and use_corpus:
-        earlier = [m["content"] for m in history if m["role"] == "user"]
-        index = get_index(aids_path=DEFAULT_AIDS if corpus == "enriched" else None)
-        passages, used_earlier = search_turn(index, user_text, earlier)
-    if not use_corpus:
+    if not settings.use_manual:
         passages = None
+    elif passages is None:
+        earlier = [m["content"] for m in history if m["role"] == "user"]
+        index = get_index(settings.search_questions, settings.glossary)
+        passages, used_earlier = search_turn(index, user_text, earlier, k=settings.top_k,
+                                             follow_up=settings.follow_up_search)
     messages, trimmed = build_messages(history, user_text, settings, passages)
 
     start = time.perf_counter()
@@ -116,7 +114,8 @@ def run_turn(
         "max_tokens": settings.max_tokens,
         "history_turns": settings.history_turns,
         "extra_params": settings.extra_params,
-        "corpus": "none" if passages is None else corpus,
+        "corpus": settings.search_label(),
+        "top_k": settings.top_k,
         "retrieved_ids": [p.id for p in passages] if passages is not None else None,
         "search_used_earlier": used_earlier,  # follow-up: searched together with earlier customer messages
         "user_chars": len(user_text),       # lengths only: no customer text in the log

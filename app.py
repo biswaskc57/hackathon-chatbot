@@ -7,6 +7,7 @@ Changes in the sidebar apply from the next message and can be saved as a new pre
 
 import json
 import os
+from dataclasses import replace
 
 import streamlit as st
 
@@ -75,7 +76,9 @@ def current_settings() -> Settings:
     model = (st.session_state.set_custom_model.strip() if st.session_state.set_model == OTHER_MODEL
              else st.session_state.set_model)
     extra, _ = parse_extra_params()
-    s = Settings(
+    # Start from the preset, so settings without a sidebar widget (the search settings) keep the preset's value.
+    s = replace(
+        load_settings(st.session_state.sel_preset),
         model=model,
         temperature=float(st.session_state.set_temperature),
         max_tokens=int(st.session_state.set_max_tokens),

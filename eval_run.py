@@ -1,18 +1,22 @@
-"""One evaluation script for all steps of the corpus comparison.
+"""One evaluation script for every comparison: test set x preset (plus optional model and settings).
 
-    step 1: --corpus none   the assistant without the manual (GPT-4o's own knowledge)
-    step 2: --corpus raw    the original corpus, keyword search (BM25), top 3 passages
-    step 3: --corpus enriched  same passages; search also uses data/search_questions.jsonl
+The preset (settings.json) decides model and search; the evaluation then fixes temperature 0, max 800 tokens,
+no memory and asks for all steps in one answer, the same for every run. --corpus overrides the preset's search
+for the corpus comparison:
+    step 1: --corpus none       no manual (the model's own knowledge)
+    step 2: --corpus raw        BM25 over the original passages
+    step 3: --corpus enriched   BM25 that also searches the generated customer questions and the glossary
 
-Every step uses the SAME settings (preset "eval", same fingerprint), so the corpus is the only
-thing that changes. Each question is a fresh conversation, sent through assistant.run_turn,
-the same engine as the UI. Writes one CSV row per answer to results/, ready for scoring by hand.
+Each question is a fresh conversation through assistant.run_turn, the same engine as the UIs. Each run writes
+    results/<date>_<preset>_<fingerprint>_<set>.jsonl   one line per case (for scripts and reports)
+    results/<date>_<preset>_<fingerprint>_<set>.csv     the same rows, with empty columns for scoring by hand
+    results/<date>_<preset>_<fingerprint>_<set>_settings.json
 
 Run:
-    python3 eval_run.py --corpus raw --set golden --dry-run    show what the model would receive
-    python3 eval_run.py --corpus raw --set golden --limit 3    first real try
-    python3 eval_run.py --corpus raw --set golden              all 20 golden questions
-    python3 eval_run.py --corpus raw --set tickets             only once the prompt is frozen
+    python3 eval_run.py --dry-run                              show what the model would receive
+    python3 eval_run.py --preset gemini-3.5-flash --limit 3    first real try with a preset
+    python3 eval_run.py --corpus raw                           golden set, baseline preset, raw search
+    python3 eval_run.py --set tickets ...                      blind test: once, at the end
 """
 
 import argparse
@@ -27,15 +31,18 @@ from pathlib import Path
 from assistant import LLMError, build_messages, run_turn
 from config import SETTING_NAMES, load_settings
 from llm_client import APIClient, fold_system_messages
-from retrieval import DEFAULT_AIDS, DEFAULT_CORPUS, DEFAULT_TOP_K, BM25Index, load_corpus, load_glossary
+from retrieval import get_index
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
 RESULTS = ROOT / "results"
 
-# raw and enriched use the same passages; enriched also searches the customer-style questions (step 3).
-AIDS_FILES = {"enriched": DEFAULT_AIDS}
-TOP_K = DEFAULT_TOP_K
+# --corpus: the search settings of each comparison step.
+CORPUS_STEPS = {
+    "none": {"use_manual": False},
+    "raw": {"use_manual": True, "search_questions": False, "glossary": False},
+    "enriched": {"use_manual": True, "search_questions": True, "glossary": True},
+}
 
 # The golden set scores one complete answer, so evaluation asks for one. Same in every step.
 COMPLETE_ANSWER_ADDENDUM = (
@@ -44,16 +51,16 @@ COMPLETE_ANSWER_ADDENDUM = (
 )
 
 
-def eval_settings():
-    """Baseline preset + fixed evaluation values. Every step must show the same fingerprint."""
-    base = load_settings("baseline")
+def eval_settings(preset: str = "baseline"):
+    """The preset + fixed evaluation values (temperature 0, max 800 tokens, no memory, complete answers)."""
+    base = load_settings(preset)
     return replace(
         base,
         temperature=0.0,
         max_tokens=800,
         history_turns=0,
         system_prompt=base.system_prompt + COMPLETE_ANSWER_ADDENDUM,
-        preset="eval",
+        preset=f"eval-{preset}",
     )
 
 
@@ -118,7 +125,9 @@ COLUMNS = [
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--corpus", choices=["none", "raw", "enriched"], required=True)
+    parser.add_argument("--preset", default="baseline", help="preset from settings.json (default: baseline)")
+    parser.add_argument("--corpus", choices=list(CORPUS_STEPS),
+                        help="override the preset's search (step 1/2/3 of the corpus comparison)")
     parser.add_argument("--set", choices=["golden", "tickets"], default="golden")
     parser.add_argument("--limit", type=int, help="only the first N questions (for a quick try)")
     parser.add_argument("--dry-run", action="store_true", help="no model call, no credentials needed")
@@ -128,9 +137,11 @@ def main() -> None:
                         "that setting; other keys go to the gateway as extra parameters. Changes the fingerprint")
     args = parser.parse_args()
 
-    settings = eval_settings()
+    settings = eval_settings(args.preset)
+    if args.corpus:
+        settings = replace(settings, **CORPUS_STEPS[args.corpus])
     if args.model:
-        settings = replace(settings, model=args.model)
+        settings = replace(settings, model=args.model, preset=f"{settings.preset}-{args.model}")
     if args.params:
         overrides = json.loads(args.params)
         own = {k: v for k, v in overrides.items() if k in SETTING_NAMES and k != "extra_params"}
@@ -139,19 +150,17 @@ def main() -> None:
     questions = load_questions(args.set)[: args.limit]
     corpus_text = load_corpus_text()
 
-    index = None
-    if args.corpus != "none":
-        index = BM25Index(load_corpus(DEFAULT_CORPUS, AIDS_FILES.get(args.corpus)),
-                          glossary=load_glossary() if args.corpus == "enriched" else None)  # step 3 = questions + glossary
+    index = get_index(settings.search_questions, settings.glossary) if settings.use_manual else None
 
     def retrieve(question: str) -> list:
-        return [p for p, _ in index.search(question, k=TOP_K)] if index else []
+        # Single questions, so the follow-up search never applies here.
+        return [p for p, _ in index.search(question, k=settings.top_k)] if index else []
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M")
-    model_part = f"_{args.model}" if args.model else ""
-    run_id = f"corpus-{args.corpus}_{args.set}{model_part}_{stamp}"
-    retrieval_desc = f"bm25 top {TOP_K}" if index else "none"
-    print(f"[{run_id}] corpus: {args.corpus} | retrieval: {retrieval_desc} | preset: {settings.preset} | "
+    search = settings.search_label()
+    run_id = f"{stamp}_{settings.preset}_{settings.fingerprint()}_{args.set}"
+    retrieval_desc = f"bm25 {search} top {settings.top_k}" if index else "none"
+    print(f"[{run_id}] search: {retrieval_desc} | preset: {settings.preset} | "
           f"fingerprint: {settings.fingerprint()} | model: {settings.model} | questions: {len(questions)}")
 
     if args.dry_run:
@@ -170,12 +179,13 @@ def main() -> None:
     client = APIClient()
     RESULTS.mkdir(exist_ok=True)
     (RESULTS / f"{run_id}_settings.json").write_text(json.dumps({
-        "corpus": args.corpus, "retrieval": retrieval_desc, "test_set": args.set,
+        "corpus": search, "retrieval": retrieval_desc, "test_set": args.set, "preset": settings.preset,
         "fingerprint": settings.fingerprint(), **settings.values(),
     }, indent=2, ensure_ascii=False), encoding="utf-8")
 
     out_file = RESULTS / f"{run_id}.csv"
-    with open(out_file, "w", newline="", encoding="utf-8") as f:
+    jsonl_file = RESULTS / f"{run_id}.jsonl"
+    with open(out_file, "w", newline="", encoding="utf-8") as f, open(jsonl_file, "w", encoding="utf-8") as fj:
         writer = csv.DictWriter(f, fieldnames=COLUMNS)
         writer.writeheader()
         for i, q in enumerate(questions, 1):
@@ -183,31 +193,44 @@ def main() -> None:
             try:
                 result = run_turn(client, [], q["question"], settings,
                                   conversation_id=f"{run_id}-{q['id']}", turn=1,
-                                  source=f"eval-corpus-{args.corpus}-{args.set}",
-                                  passages=passages if index else None,
-                                  use_corpus=index is not None, corpus=args.corpus)
+                                  source=f"eval-{search}-{args.set}",
+                                  passages=passages if index else None)
             except LLMError as exc:
                 print(f"\nStopped at {q['id']}: {exc}\n{i - 1} answers saved in {out_file}")
                 sys.exit(1)
             gold = set(q["source_passage_ids"].split("|"))
             retrieved = [p.id for p in passages]
-            writer.writerow({
+            row = {
                 **{k: q[k] for k in ("id", "category", "kind", "question", "reference_answer",
-                                     "must_include", "expected_behaviour", "source_passage_ids")},
+                                     "must_include", "expected_behaviour")},
+                "source_passage_ids": sorted(gold),
                 "answer": result.answer,
-                "retrieved_ids": "|".join(retrieved),
-                "retrieval_hit": ("y" if gold & set(retrieved) else "n") if index else "",
-                "cited_ids": "|".join(dict.fromkeys(CITATION.findall(result.answer))),
-                "unknown_menu_paths": " | ".join(unknown_menu_paths(result.answer, corpus_text)),
-                "unknown_bold_terms": " | ".join(unknown_bold_terms(result.answer, corpus_text)),
+                "retrieved_ids": retrieved,
+                "retrieval_hit": bool(gold & set(retrieved)) if index else None,
+                "cited_ids": list(dict.fromkeys(CITATION.findall(result.answer))),
+                "unknown_menu_paths": unknown_menu_paths(result.answer, corpus_text),
+                "unknown_bold_terms": unknown_bold_terms(result.answer, corpus_text),
                 "input_tokens": result.usage["input_tokens"],
                 "output_tokens": result.usage["output_tokens"],
                 "latency_s": round(result.latency_s, 2),
+            }
+            fj.write(json.dumps({"run_id": run_id, "test_set": args.set, "preset": settings.preset,
+                                 "fingerprint": settings.fingerprint(), "model": settings.model,
+                                 "search": search, "top_k": settings.top_k, **row}, ensure_ascii=False) + "\n")
+            writer.writerow({
+                **row,
+                "source_passage_ids": "|".join(row["source_passage_ids"]),
+                "retrieved_ids": "|".join(retrieved),
+                "retrieval_hit": {True: "y", False: "n", None: ""}[row["retrieval_hit"]],
+                "cited_ids": "|".join(row["cited_ids"]),
+                "unknown_menu_paths": " | ".join(row["unknown_menu_paths"]),
+                "unknown_bold_terms": " | ".join(row["unknown_bold_terms"]),
             })
             f.flush()
+            fj.flush()
             print(f"[{i}/{len(questions)}] {q['id']} done")
 
-    print(f"\nResults: {out_file}")
+    print(f"\nResults: {jsonl_file}\n         {out_file}")
 
 
 if __name__ == "__main__":

@@ -41,7 +41,19 @@ class Settings:
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
     ai_disclosure: str = DEFAULT_AI_DISCLOSURE
     extra_params: dict = field(default_factory=dict)  # sent as-is to the gateway, e.g. {"topP": 0.9}
+    # Search (retrieval.py). Part of the fingerprint, so runs with different search can be told apart.
+    use_manual: bool = True          # False: no manual at all (evaluation step 1 only)
+    search_questions: bool = False   # also search the generated customer-style questions (data/search_questions.jsonl)
+    glossary: bool = False           # add the manual's words for customer words (data/glossary.csv)
+    top_k: int = 3                   # passages sent with each question
+    follow_up_search: bool = True    # weak follow-ups ("still nothing") are searched with earlier messages
     preset: str = "custom"           # name only; not part of the fingerprint
+
+    def search_label(self) -> str:
+        """Short name of the search, for logs and file names: none, raw, enriched, raw+glossary, enriched+glossary."""
+        if not self.use_manual:
+            return "none"
+        return ("enriched" if self.search_questions else "raw") + ("+glossary" if self.glossary else "")
 
     def gateway_params(self) -> dict:
         """Parameters for the gateway call, in the gateway's own names."""
