@@ -2,7 +2,7 @@
 
 An AI support assistant for **Smart Tech Inc.**, a fictional European smart-TV maker. It answers TV how-to and troubleshooting questions and hands everything else to a human agent. The goal is to lower cost per contact by at least 15% (from EUR 7.37 to EUR 6.26) without adding wrong or invented advice.
 
-> **Status: working prototype with retrieval.** Chat (command line and web UI) on the EU-hosted LLM gateway, answering from the TV manual: keyword search (BM25) finds the 3 best passages for each question, and answers cite their passage ids. Not built yet: scope router, evidence gate, hand-over summary and agent-assist view (see Roadmap).
+> **Status: demo-ready prototype (6 November 2026).** Answers from the TV manual with sources (BM25 + generated search questions + glossary), and every step of a turn can be switched on per preset: PII masking, a scope router (answer / hand over / clarify), a menu-path check that blocks invented menus, and one ticket per conversation with hand-over to an agent. The live demo page shows the customer chat, the agent console and a "Why this answer" trace side by side. Not built yet: evidence gate, hybrid search, query rewrite, per-question e-mail routing (see Roadmap).
 
 ## Quick start
 
@@ -28,7 +28,7 @@ The organisers' data files are already in `data/`. Without `data/corpus.jsonl` t
 |---|---|
 | `python3 run.py` | List all tasks |
 | `python3 run.py build` | Create `.venv` and install `requirements.txt` |
-| `python3 run.py ui` | Start the Streamlit web UI |
+| `python3 run.py ui` | Start the live demo (customer chat, agent console, trace) and the e-mail page |
 | `python3 run.py chat` | Start the command-line chat |
 | `python3 run.py api` | Start the web API for the Lovable UI at http://localhost:8000 (docs at `/docs`) |
 | `python3 run.py test-gateway` | Send one test message to the gateway |
@@ -44,7 +44,8 @@ Not `run.py` tasks yet; run them with the project's Python:
 | `.venv/bin/python measure_search.py` | Search quality only, no model calls: is the right passage in the top 1 / 3 / 5? Raw vs enriched vs enriched + glossary, golden set only. `--tickets` adds the blind ticket set: final run only |
 | `.venv/bin/python test_glossary.py` | Checks each glossary entry on our own test queries: does it help where it should, and not hurt elsewhere? Seconds, no model calls |
 | `.venv/bin/python eval_run.py --dry-run` | Show what the model would receive for the first question; no call, no credentials needed |
-| `.venv/bin/python eval_run.py [--preset NAME] [--corpus none\|raw\|enriched] [--set golden\|tickets] [--limit N]` | Run a test set with a preset (default `baseline`); `--corpus` overrides the preset's search |
+| `.venv/bin/python eval_run.py [--preset NAME] [--corpus none\|raw\|enriched] [--set golden\|extended\|tickets] [--limit N]` | Run a test set with a preset (default `baseline`); `--corpus` overrides the preset's search. Results include the route (answer / hand_over / clarify) |
+| `.venv/bin/python test_router.py` | Routing quality, no model calls: confusion matrix answer / hand over / clarify on golden + `data/extended_set.csv`, hand-over precision and recall with 95% intervals |
 | `... eval_run.py --corpus raw --model gpt-5 --params '{"temperature": 1, "reasoningEffort": "minimal"}'` | Same, with another model and the parameters it needs (changes the fingerprint). See `results/model_comparison_20261105.md` |
 | `.venv/bin/python make_search_questions.py [--limit N]` | Generate customer-style search questions for each passage (needs the gateway; resumes where it stopped) |
 
@@ -84,20 +85,51 @@ All assistant settings live in `settings.json`: `defaults` plus named presets (`
 | `assistant.py` | Conversation engine shared by the UI, the command line and the evaluation: searches the manual, builds the messages, calls the gateway, logs the turn |
 | `retrieval.py` | BM25 keyword search over the manual passages; optional search-only questions per passage |
 | `chat.py` | Command-line chat (`--preset`, `--list-presets`) |
-| `app.py` | Streamlit web UI with presets, a settings panel and session statistics |
+| `app.py` | Live demo page: customer chat with source chips and "Did this help?", agent console (live ticket queue, agent assist), "Why this answer" trace, demo scenarios, replay, presenter mode |
+| `pages/1_Agent_inbox.py` | E-mail page: demo, pasted or ticket e-mails, masked view, draft, Approve / Edit / Reject |
+| `ui_settings.py`, `ui_components.py` | Settings panel and shared demo pieces (styles, chips, trace, scenarios, replays) |
+| `pii.py` | Masks e-mail addresses, phone, serial and order numbers, addresses and introduced names before the model sees a message |
+| `router.py` | Scope router, rules only: answer, hand over (warranty, repair, orders, returns, prices, billing) or one clarifying question |
+| `menu_check.py` | Blocks an answer whose menu path is not in the manual and hands over |
+| `tickets.py` | One ticket per conversation (`logs/tickets.jsonl`, masked summary only), status lifecycle, agent queue |
+| `demo/` | `scenarios.json` (the six demo scenarios) and `replays/` (recorded answers for replay mode) |
 | `api.py` | Web API (FastAPI) for the Lovable UI: `/config`, `/chat`, `/feedback`, protected by an access code |
 | `Dockerfile`, `requirements-api.txt` | Container for hosting the API (no Streamlit) |
 | `run.py` | npm-style task runner |
 | `eval_run.py` | Evaluation: test set x preset, with `--corpus` for the corpus comparison steps |
 | `measure_search.py` | Search hit rates, no model calls |
 | `test_glossary.py` | Per-entry glossary check against `data/glossary_tests.csv` |
+| `test_router.py` | Routing confusion matrix on golden + extended set, no model calls |
 | `make_search_questions.py` | Generates `data/search_questions.jsonl` |
 | `data/` | The organisers' files plus our generated search questions (see Data and licences) |
 | `results/` | Evaluation runs: one CSV and one settings file per run |
 | `requirements.txt` | Python packages |
 | `.env.example` | Template for `.env` |
 
+## Live demo (presentation)
+
+`python3 run.py ui` opens the demo page with the `demo` preset (enriched search + glossary, PII masking, router,
+menu-path check, tickets). If port 8501 is busy: `python3 run.py ui --server.port 8611`. Test at 1920x1080.
+
+| # | Scenario | What it proves | Trace to point at |
+|---|---|---|---|
+| 1 | How-to with sources | Answers from the manual, with source chips (hover shows the passage) | Search passed, Menu paths passed |
+| 2 | Catches a mistake (TV-0027) | "A USB stick is not supported for recording" [p0203]: the manual corrects the customer | Search finds p0203 |
+| 3 | Knows its limits | Warranty question: no model call, hand-over, ticket appears in the agent console | Router handed over (amber) |
+| 4 | Refuses to invent (stress test) | Manual switched off for one turn (preset `demo-no-manual`); the model invents a menu and the check blocks it | Menu paths blocked (red) |
+| 5 | Privacy | Serial number, e-mail and phone are masked before the model sees them | PII masked: "The model saw: ..." |
+| 6 | E-mail | Opens the e-mail page with a mixed e-mail (two questions + warranty) and its masked text | Masked view, decision |
+
+- **Replay mode** plays scenarios from `demo/replays/` (recorded with the live gateway); the trace says "replay". If
+  the gateway fails during a live run, the recorded answer is used automatically. **Record scenarios** re-records.
+- **Presenter mode** collapses the sidebar, enlarges the fonts and hides settings and token counts.
+- **Reset demo** clears the chat, the trace and the demo tickets.
+- Scenarios whose setting is off in the active preset show "coming soon" and switch on by themselves.
+
 ## How an answer is made
+
+With the `demo` preset, a turn first masks personal data (`pii.py`), then routes it (`router.py`): out-of-scope questions get a fixed hand-over reply and a ticket in the agent queue without any model call, and very short first messages get one clarifying question. After the answer, `menu_check.py` blocks any menu path that is not in the manual and hands over. Each step is a setting (`pii_mask`, `router`, `menu_check`, `tickets`); when off, the behaviour and fingerprints are the same as before these modules existed. The steps below are the answer itself.
+
 
 1. The customer's **current message** is searched in the manual (`retrieval.py`, BM25 keyword search). The 3 best passages are taken. If the message matches the manual poorly (best score below 8.5, e.g. "I tried that but it didn't help"), it is treated as a follow-up and searched together with the customer's last 2 earlier messages. A new question scores higher and is searched on its own, so a change of topic is not mixed with the old one.
 2. The passages go into the **current user message, before the question**, with instructions: answer only from these passages, read menu paths without arrows ("Settings Picture Picture Mode") as Settings > Picture > Picture Mode, cite the passage ids, and if the passages do not answer the question, say so and offer a human colleague. The system prompt itself is unchanged.
@@ -172,7 +204,19 @@ We compare three versions of the assistant in which **only the corpus changes**:
 - **Customer-style questions:** `data/search_questions.jsonl` holds 5 questions per passage, generated by GPT-4o from the passage text only (never from the tickets or golden questions). They are used for search only and never shown to customers. One-off cost: 105,972 input and 16,045 output tokens, about $0.43 at list price. Spot-check them and set `"reviewed": true` on the ones checked.
 - **Glossary:** `data/glossary.csv` maps words customers use to the manual's words (e.g. set-top box, cable box → Anynet+ (HDMI-CEC), Universal Remote). When a customer term appears in a message, the manual terms are **added** to the search query; the customer's words are kept, and nothing is shown to the customer. Columns: `customer_terms` (several separated by `;`, whole words, any case), `manual_terms`, `source`, `note`, `not_for` (the reason in words) and `unless` (words that stop the entry firing, e.g. `bluetooth` for soundbar, so a Bluetooth soundbar question is not pulled towards Anynet+). Rules learned so far: map only **specific** customer terms to **rare** manual terms (`Smart Tech`, `remote` or `external device` appear in 58 to 79 passages and add noise), and test every entry with `test_glossary.py` for at least one query it should help and one with the same word but a different meaning that it must not hurt. Sources must be the corpus, the golden set or general knowledge, never the tickets. The 4 ticket-based entries (remote, home screen, voice search, subtitles) were removed on 5 November; re-ground them from the manual or the golden set before adding them back. Their test queries stay in `data/glossary_tests.csv`.
 
-### Results so far (4 to 5 November 2026)
+### Results so far (4 to 6 November 2026)
+
+Safety modules, 6 November (golden set + our extended set `data/extended_set.csv`, 22 questions written by the team):
+
+| Check | Result |
+|---|---|
+| Router, all decisions (golden + extended, no model calls) | 40/42 correct (95% CI 84%–99%) |
+| Router, hand-over precision / recall | 12/12 (76%–100%) / 12/13 (67%–99%); miss: account e-mail change |
+| Router, in-scope questions wrongly handed over | 0/25 (0%–13%) |
+| Menu check on stored golden answers, current setup | 0/20 blocked (no false blocks) |
+| Menu check on the step-1 run (no manual) | 9/20 answers blocked for invented menus |
+| Golden, before (enriched, no modules) vs after (`demo` preset) | answered 20 → 20, right passage cited 20 → 20, tokens per answer 1,241 → 1,247 |
+
 
 | Search (right passage found) | Top 1 | Top 3 | Top 5 |
 |---|---|---|---|

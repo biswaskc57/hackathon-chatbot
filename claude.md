@@ -51,19 +51,24 @@ Engine and gateway
   gpt-5-minimal, email-draft), 8-char settings fingerprint, MODEL_RULES (params each gateway model needs).
   The default system prompt exists twice (config.py fallback + settings.json): change both.
 - assistant.py: run_turn(client, history, user_text, settings, conversation_id, turn, source, passages=None)
-  -> TurnResult(answer, history, usage, latency_s, retrieved_ids). Steps today: BM25 search -> passages placed
-  before the question with "cite [pXXXX], hand over if not covered" instructions -> one gateway call -> one log
-  line in logs/conversation_log.jsonl (lengths, ids, tokens, latency; no customer text). No router, gate, PII,
-  menu check or ticket inside run_turn yet.
+  -> TurnResult(answer, history, usage, latency_s, retrieved_ids, trace, ticket_id, route, route_category,
+  handover_reason). Steps (6 Nov), each a setting: pii.py mask (pii_mask) -> router.py (router; hand_over/clarify
+  = fixed reply, no model call) -> BM25 search -> one gateway call -> menu_check.py (menu_check; unknown path =
+  answer blocked + hand-over) -> log line (adds route, PII labels, menu_blocked) -> tickets.py (tickets).
+  pii_mask/router/menu_check enter the fingerprint only when on; tickets never (does not change answers).
+  No evidence gate yet (trace shows "Gate: off").
 - retrieval.py: BM25 over data/corpus.jsonl; optional search-only enrichment (data/search_questions.jsonl,
   5 generated customer questions per passage) and glossary query expansion (data/glossary.csv, with "unless"
   words); follow-up search (score < 8.5 -> searched with the last 2 customer messages). No cleaning, chunking,
   dedup, vectors or rewrite yet.
 
 Front-ends (all call run_turn)
-- app.py: Streamlit chat, centered layout, preset/settings sidebar, token stats. run.py ui.
-- pages/1_Agent_inbox.py: Streamlit page auto-loaded next to app.py: e-mail inbox (data/demo_emails.jsonl or
-  pasted), draft via email_draft.py, edit / send (simulated) / discard, review log to logs/email_review_log.jsonl.
+- app.py: live demo page (R8): customer chat + source chips + "Did this help?", agent console (2 s auto-refresh
+  queue, agent assist via email_draft), "Why this answer" trace, scenarios (demo/scenarios.json), replay/record
+  (demo/replays/), presenter mode. ui_settings.py (settings panel), ui_components.py (styles, chips, trace).
+  Presets: demo (enriched + glossary + all safety modules + tickets), demo-no-manual (scenario 4 stress test).
+- pages/1_Agent_inbox.py: e-mail page: inbox (data/demo_emails.jsonl, pasted, tickets_tv e-mail/web-form, or
+  scenario 6), masked view, draft via email_draft.py, Approve / Edit / Reject (simulated), review log.
 - chat.py: CLI. run.py chat.
 - api.py (+ Dockerfile, requirements-api.txt, .dockerignore): FastAPI for the external Lovable UI: /config,
   /chat, /feedback (thumbs up/down + fixed reason, logs/feedback_log.jsonl). Access-code protected. run.py api.
@@ -84,6 +89,8 @@ Evaluation (keep all; results are evidence for the business deck)
   Known issue: some judge calls return no score (8/40, 4/40, 7/40 in the ticket runs).
 - measure_search.py: hit@1/3/5, no model calls, raw vs enriched vs +glossary (golden; --tickets = blind).
 - test_glossary.py + data/glossary_tests.csv: per-entry glossary help/hurt check.
+- test_router.py + data/extended_set.csv (22 own questions: out of scope, traps p0020/p0138, unclear, tricky in
+  scope): routing confusion matrix, no model calls. eval_run.py --set extended runs it through the engine.
 - make_search_questions.py: generated data/search_questions.jsonl (gpt-4o, passage text only).
 - Model comparison (the "3-model evaluation"): results/model_comparison_20261105.md: 11 gateway models on golden
   raw (results/corpus-raw_golden_<model>_*.csv), top 4 on golden enriched (corpus-enriched_*); recommendation
@@ -98,12 +105,13 @@ Evaluation (keep all; results are evidence for the business deck)
 
 What already works vs R1–R8 (see section 5 for status per requirement)
 - Retrieval with citations: yes (BM25 + enrichment + glossary, [pXXXX] citations by prompt).
-- Router: no (scope is only an instruction in the system prompt).
+- Router: yes, rules (router.py): 40/42 correct on golden + extended, 0/25 in-scope wrongly handed over; misses:
+  account e-mail change, "It doesn't work".
 - Evidence gate: no (prompt says "hand over if passages do not answer"; a BM25 score threshold was tested and rejected).
-- Menu-path check: partly: unknown_menu_paths() in eval_run.py, used as warnings in email_draft.py; not in
-  run_turn, never blocks; regex gives false positives.
-- PII masking: partly: email_draft.clean_email() (regex); not applied to chat / run_turn; names only in sign-offs.
-- Hand-over / tickets: no ticket store; e-mail no_draft/partial + triage_note is the only hand-over.
+- Menu-path check: yes (menu_check.py, blocks): 0/20 false blocks on current golden answers, 9/20 caught in the
+  no-manual step-1 run. eval_run.unknown_menu_paths() is the older hint-only version.
+- PII masking: yes for chat (pii.py, regex; no free names); e-mail keeps email_draft.clean_email().
+- Hand-over / tickets: yes (tickets.py, logs/tickets.jsonl): router, menu block or "Talk to a person" -> HANDED_OVER.
 - E-mail handling: mostly (draft_reply + Agent inbox + eval_email); missing per-question split and routing, language
   detection, loading tickets_tv e-mails in the UI.
 
@@ -140,11 +148,11 @@ Status (audit 5 Nov 2026):
 | Req | Status | Done | Missing |
 |---|---|---|---|
 | R1 retrieval | partly | BM25, search-only enrichment, glossary, follow-up search, citations, measure_search.py | ">" restoration, chunking of p0106/p0210/p0068, near-dup collapse, vectors + RRF, query rewrite |
-| R2 safety | partly | scope + "hand over if not covered" in prompt; menu-path + PII regex in email_draft.py only | router, evidence gate, menu check and PII inside run_turn, hand-over flow, trap-passage tests |
-| R3 evaluation | partly | eval_run / eval_email / judge_answers, 11-model comparison, cost per answer, search hit@k | extended set (~20 incl. out of scope), MRR + extra acceptable ids, routing confusion matrix, CIs in code, business CSV, trade-off chart |
-| R6 tickets | not started | – | store, status lifecycle, "Did this help?" (only api.py /feedback thumbs) |
-| R7 email | mostly | draft_reply, Agent inbox page (edit/send/discard), eval_email, 5 demo e-mails | per-question split + routing, language detection, ~10 synthetic test e-mails, load tickets_tv e-mails in UI |
-| R8 demo UI | not started | app.py chat + Agent inbox page to reuse | split screen, agent console, trace strip, scenarios, replay, presenter mode |
+| R2 safety | mostly | pii.py, router.py, menu_check.py in run_turn (switchable), hand-over flow, trap questions in extended set | evidence gate, model-based router for misses, mixed in/out-of-scope chat messages |
+| R3 evaluation | partly | eval_run (golden/extended/tickets, route column), eval_email, judge_answers, 11-model comparison, cost per answer, search hit@k, extended set (22), routing confusion matrix + Wilson CIs (test_router.py) | MRR + extra acceptable ids, business CSV, trade-off chart, judge on extended |
+| R6 tickets | mostly | tickets.py: one ticket per conversation, masked summary, lifecycle, queue, "Did this help?" | cost_eur, bot_confidence, model_series, related_ticket_id, ABANDONED timeout |
+| R7 email | mostly | draft_reply, e-mail page (masked view, Approve/Edit/Reject, tickets_tv loading), eval_email, 5 demo e-mails | per-question split + routing, language detection, ~10 synthetic test e-mails |
+| R8 demo UI | done | split screen, agent console, trace strip, 6 scenarios (all enabled with preset demo), replay + record, presenter mode, tested at 1920x1080 | per-question decisions on the e-mail page (needs R7 split) |
 | R9 agent | not started | – | all |
 
 ## 6. Requirements
