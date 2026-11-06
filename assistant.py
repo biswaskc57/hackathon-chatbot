@@ -7,7 +7,7 @@ write one log line. Every front end gets the same retrieval and logging from her
 import json
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -25,6 +25,34 @@ class TurnResult:
     usage: dict          # input_tokens, output_tokens, total_tokens, raw_usage
     latency_s: float
     retrieved_ids: list | None = None   # manual passages sent with this question (None: no manual)
+    trace: list = field(default_factory=list)   # TraceStep per pipeline step, for the "Why this answer" strip
+    ticket_id: str | None = None        # set when settings.tickets is on
+
+
+@dataclass
+class TraceStep:
+    """One step of a turn as shown in the demo trace. status: passed | handed_over | blocked | off | replay."""
+    name: str
+    status: str
+    reason: str
+
+
+# Steps of the target pipeline that are not built yet. They show as "off" until their module exists
+# and is switched on in settings.json (then they report their own status).
+PLANNED_STEPS = ("PII masked", "Router", "Gate", "Menu paths")
+
+
+def build_trace(passages: list | None, used_earlier: bool) -> list:
+    if passages is None:
+        search = TraceStep("Search", "off", "No manual (use_manual is off)")
+    elif not passages:
+        search = TraceStep("Search", "handed_over", "No manual passage matched; the model was told to hand over")
+    else:
+        ids = ", ".join(p.id for p in passages)
+        search = TraceStep("Search", "passed", f"{len(passages)} passages: {ids}"
+                           + (" (follow-up: searched with earlier messages)" if used_earlier else ""))
+    steps = {name: TraceStep(name, "off", "Not built yet") for name in PLANNED_STEPS}
+    return [steps["PII masked"], steps["Router"], search, steps["Gate"], steps["Menu paths"]]
 
 
 def new_conversation_id() -> str:
@@ -126,10 +154,15 @@ def run_turn(
         "latency_s": round(latency, 2),
     })
 
-    return TurnResult(
+    result = TurnResult(
         answer=answer,
         history=trimmed + [{"role": "assistant", "content": answer}],
         usage=usage,
         latency_s=latency,
         retrieved_ids=[p.id for p in passages] if passages is not None else None,
+        trace=build_trace(passages, used_earlier),
     )
+    if settings.tickets:
+        import tickets  # here, not at the top: tickets.py uses the masking from email_draft.py, which imports this module
+        result.ticket_id = tickets.record_turn(conversation_id, source, user_text, result, passages or [], settings)
+    return result

@@ -7,6 +7,7 @@ logs/email_review_log.jsonl WITHOUT customer text: decision, effort level, how m
 seconds from draft to send. That is the evidence for the "minutes saved per draft" assumption.
 """
 
+import csv
 import difflib
 import json
 import os
@@ -17,7 +18,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from email_draft import AI_NOTICE, DEMO_FILE, draft_reply, email_settings
+from email_draft import AI_NOTICE, DEMO_FILE, clean_email, draft_reply, email_settings
 from retrieval import load_corpus
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +34,15 @@ st.set_page_config(page_title="Agent inbox · Smart Tech", page_icon="📨", lay
 @st.cache_data
 def demo_emails() -> list[dict]:
     return [json.loads(line) for line in DEMO_FILE.open(encoding="utf-8") if line.strip()]
+
+
+@st.cache_data
+def ticket_emails() -> list[dict]:
+    """E-mail and web-form tickets from the organisers' blind set: for showing only, never for tuning."""
+    with open(ROOT / "data" / "tickets_tv.csv", encoding="utf-8") as f:
+        return [{"id": r["ticket_id"], "subject": r["subject"], "body": r["body"], "origin": "ticket",
+                 "what_it_tests": f"{r['channel']} ticket from tickets_tv.csv"}
+                for r in csv.DictReader(f) if r["channel"] in ("email", "web-form")]
 
 
 @st.cache_resource
@@ -59,6 +69,21 @@ ss.setdefault("drafts", {})      # email id -> EmailDraft as dict
 ss.setdefault("shown_at", {})    # email id -> time the draft appeared
 ss.setdefault("done", {})        # email id -> outcome record
 
+
+def add_to_inbox(email: dict) -> None:
+    """Add (or replace) an e-mail and select it."""
+    ss.inbox = [e for e in ss.inbox if e["id"] != email["id"]] + [email]
+    ss.drafts.pop(email["id"], None)
+    ss.done.pop(email["id"], None)
+    ss.selected = email["id"]
+
+
+# Demo scenario 6 on the live demo page sends its e-mail here.
+if "preload_email" in ss:
+    pre = ss.pop("preload_email")
+    add_to_inbox({"id": pre["id"], "subject": pre["subject"], "body": pre["body"], "origin": "scenario",
+                  "what_it_tests": f"demo scenario: {pre['label']}"})
+
 def status(eid: str) -> str:
     return "✅" if eid in ss.done else "📝" if eid in ss.drafts else "✉️"
 
@@ -71,6 +96,13 @@ with st.sidebar:
     selected = st.radio("E-mails", list(subjects), format_func=lambda i: f"{i} · {subjects[i]}",
                         key="selected", label_visibility="collapsed")
     st.caption("  ".join(f"{i} {status(i)}" for i in subjects))
+    with st.expander("📥 Load from tickets (e-mail / web form)"):
+        options = {t["id"]: t for t in ticket_emails()}
+        pick = st.selectbox("Ticket", list(options), format_func=lambda i: f"{i} · {options[i]['subject']}",
+                            key="ticket_pick")
+        if st.button("Load into inbox", key="load_ticket"):
+            add_to_inbox(options[pick])
+            st.rerun()
     with st.expander("➕ New e-mail"):
         with st.form("new_email", clear_on_submit=True):
             subj = st.text_input("Subject")
@@ -103,8 +135,12 @@ left, right = st.columns([2, 3], gap="large")
 with left:
     st.markdown(f"#### {status(eid)} {email['subject']}")
     st.text(email["body"])
-    if email.get("origin") == "demo":
-        st.caption(f"Demo {eid}: {email['what_it_tests']}")
+    if email.get("origin") in ("demo", "scenario", "ticket"):
+        st.caption(f"{eid}: {email['what_it_tests']}")
+    masked, removed = clean_email(email["body"])
+    with st.expander("🔒 What the assistant sees (masked)", expanded=email.get("origin") == "scenario"):
+        st.text(f"Subject: {email['subject']}\n\n{masked}")
+        st.caption("Removed or masked: " + ("; ".join(removed) if removed else "nothing found"))
     d = ss.drafts.get(eid)
     if d and d["removed_before_model"]:
         st.caption("Removed before the assistant saw it: " + "; ".join(d["removed_before_model"]))
@@ -128,6 +164,8 @@ with right:
     elif not d:
         st.info("No draft yet. Press **Create draft**.")
     else:
+        st.caption("Decision for the whole e-mail. Detected questions with a decision each come with the "
+                   "R7 question split (coming soon).")
         verdict = {"draft": ("success", "Draft ready: review before sending."),
                    "partial": ("info", "Partial draft: the TV part is answered, the rest is handed over (see triage note)."),
                    "no_draft": ("warning", "No draft: the assistant did not find a reliable answer in the manual.")}
@@ -146,7 +184,7 @@ with right:
         c3.selectbox("Priority", PRIORITIES, index=PRIORITIES.index(d["priority"]) if d["priority"] in PRIORITIES else 1, key=f"prio_{eid}")
 
         subject = st.text_input("Subject", d["subject"] or f"Re: {email['subject']}", key=f"subj_{eid}")
-        final = st.text_area("Reply (edit freely)", d["draft"], height=320, key=f"text_{eid}",
+        final = st.text_area("Edit the reply before approving", d["draft"], height=320, key=f"text_{eid}",
                              placeholder="No draft. Write the reply yourself, or forward the e-mail as the triage note says.")
 
         with st.expander(f"📚 Manual passages used ({len(d['retrieved_ids'])} found, {len(d['cited_ids'])} cited)"):
@@ -182,12 +220,12 @@ with right:
             log_review(record)
             ss.done[eid] = dict(record, final_text=text if level != "Discarded" else "")
 
-        if send_col.button("📤 Send (simulated)", type="primary", key=f"send_{eid}", disabled=not final.strip()):
+        if send_col.button("✅ Approve and send (simulated)", type="primary", key=f"send_{eid}", disabled=not final.strip()):
             text = final.rstrip()
             if AI_NOTICE not in text:
                 text += "\n\n" + AI_NOTICE      # the notice the team agreed on always goes out
             finish(effort, f"Subject: {subject}\n\n{text}")
             st.rerun()
-        if discard_col.button("🗑️ Discard draft", key=f"discard_{eid}"):
+        if discard_col.button("🗑️ Reject draft", key=f"discard_{eid}"):
             finish("Discarded", "")
             st.rerun()

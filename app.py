@@ -1,225 +1,229 @@
-"""Streamlit chat UI for the Smart Tech support assistant (answers from the TV manual, BM25 search).
+"""Live demo page (R8): customer chat on the left, agent console on the right, "Why this answer" at the bottom.
 
-Run:  python3 run.py ui
-Settings come from settings.json presets (config.py); the conversation logic is in assistant.py.
-Changes in the sidebar apply from the next message and can be saved as a new preset.
+Run:  python3 run.py ui        (designed for a projector at 1920x1080; the e-mail page is in the sidebar)
+Everything goes through assistant.run_turn(), the same engine as the CLI, the API and the evaluation.
+Settings come from settings.json presets; the page starts with the "demo" preset (baseline + tickets).
+No cost or business numbers on screen: they are in the separate presentation.
 """
-
-import json
-import os
-from dataclasses import replace
 
 import streamlit as st
 
-from assistant import LLMError, new_conversation_id, run_turn
-from config import Settings, default_preset, list_presets, load_settings, save_preset
+import tickets
+import ui_settings
+from assistant import LLMError, TraceStep, TurnResult, new_conversation_id, run_turn
+from config import load_settings
 from llm_client import APIClient
+from ui_components import (cited_ids, inject_css, load_replay, load_scenarios, passages, render_sources,
+                           render_trace, save_replay, scenario_ready)
 
-OTHER_MODEL = "Other (type a name)…"
+SOURCE = "demo"   # log source and ticket source; Reset demo clears the tickets of this source
 
-st.set_page_config(page_title="Smart Tech Support Assistant", page_icon="📺", layout="centered")
-
-
-def model_options() -> list[str]:
-    """Models from .env MODELS plus every model used in a preset."""
-    names = [m.strip() for m in os.getenv("MODELS", "gpt-4o").split(",") if m.strip()]
-    for p in list_presets():
-        m = load_settings(p).model
-        if m not in names:
-            names.append(m)
-    return names
+st.set_page_config(page_title="Smart Tech Support · Live demo", page_icon="📺", layout="wide",
+                   initial_sidebar_state="collapsed" if st.session_state.get("presenter") else "expanded")
+ss = st.session_state
 
 
 # ---------- state ----------
 def start_conversation() -> None:
-    st.session_state.conversation_id = new_conversation_id()
-    st.session_state.history = []
-    st.session_state.display = [{"role": "assistant", "content": st.session_state.get("set_ai_disclosure")
-                                 or load_settings().ai_disclosure, "meta": None}]
-    st.session_state.stats = {"turns": 0, "input": 0, "output": 0, "total": 0, "latency": 0.0}
+    ss.conversation_id = new_conversation_id()
+    ss.history = []
+    ss.display = [{"role": "assistant", "content": ss.get("set_ai_disclosure") or load_settings().ai_disclosure}]
+    ss.turn = 0
+    ss.last_trace = None
+    ss.last_replay = None
+    ss.ticket_id = None
 
 
-def apply_preset(name: str) -> None:
-    """Copy a preset's values into the sidebar widgets."""
-    s = load_settings(name)
-    options = model_options()
-    st.session_state.sel_preset = name
-    st.session_state.set_model = s.model if s.model in options else OTHER_MODEL
-    st.session_state.set_custom_model = "" if s.model in options else s.model
-    st.session_state.set_temperature = float(s.temperature)
-    st.session_state.set_max_tokens = int(s.max_tokens)
-    st.session_state.set_history_turns = int(s.history_turns)
-    st.session_state.set_system_prompt = s.system_prompt
-    st.session_state.set_ai_disclosure = s.ai_disclosure
-    st.session_state.set_extra_params = json.dumps(s.extra_params) if s.extra_params else ""
-    st.session_state.loaded_fingerprint = s.fingerprint()
-
-
-def on_preset_change() -> None:
-    apply_preset(st.session_state.sel_preset)
-
-
-def parse_extra_params() -> tuple[dict, str | None]:
-    text = st.session_state.set_extra_params.strip()
-    if not text:
-        return {}, None
-    try:
-        value = json.loads(text)
-    except json.JSONDecodeError as exc:
-        return {}, f"Extra parameters are not valid JSON: {exc.msg}"
-    if not isinstance(value, dict):
-        return {}, 'Extra parameters must be a JSON object, e.g. {"topP": 0.9}'
-    return value, None
-
-
-def current_settings() -> Settings:
-    model = (st.session_state.set_custom_model.strip() if st.session_state.set_model == OTHER_MODEL
-             else st.session_state.set_model)
-    extra, _ = parse_extra_params()
-    # Start from the preset, so settings without a sidebar widget (the search settings) keep the preset's value.
-    s = replace(
-        load_settings(st.session_state.sel_preset),
-        model=model,
-        temperature=float(st.session_state.set_temperature),
-        max_tokens=int(st.session_state.set_max_tokens),
-        history_turns=int(st.session_state.set_history_turns),
-        system_prompt=st.session_state.set_system_prompt,
-        ai_disclosure=st.session_state.set_ai_disclosure,
-        extra_params=extra,
-        preset=st.session_state.sel_preset,
-    )
-    if s.fingerprint() != st.session_state.get("loaded_fingerprint"):
-        s.preset = f"{st.session_state.sel_preset} (edited)"
-    return s
-
-
-def on_save_preset() -> None:
-    try:
-        name = save_preset(st.session_state.new_preset_name, current_settings())
-    except ValueError as exc:
-        st.session_state.save_message = ("error", str(exc))
-        return
-    apply_preset(name)
-    st.session_state.new_preset_name = ""
-    st.session_state.save_message = ("success", f"Saved preset '{name}'.")
-
-
-if "sel_preset" not in st.session_state:
-    apply_preset(default_preset())
-# Start fresh if any session key is missing (e.g. a browser tab left open from an older app version).
-if any(k not in st.session_state for k in ("conversation_id", "history", "display", "stats")):
+ui_settings.init(preferred="demo")
+if any(k not in ss for k in ("conversation_id", "history", "display", "turn")):
     start_conversation()
+ss.setdefault("presenter", False)
+ss.setdefault("replay_mode", False)
+ss.setdefault("record", False)
+ss.setdefault("suggestions", {})
 
 
-# ---------- sidebar: settings ----------
+def reset_demo() -> None:
+    start_conversation()
+    tickets.clear(SOURCE)
+    ss.suggestions = {}
+
+
+# ---------- sidebar ----------
 with st.sidebar:
-    st.subheader("Settings preset")
-    presets = list_presets()
-    if st.session_state.sel_preset not in presets:
-        apply_preset(default_preset())
-    st.selectbox("Preset", presets, key="sel_preset", on_change=on_preset_change,
-                 help="Presets live in settings.json. Changes below apply from the next message.")
+    st.markdown("### 📺 Smart Tech · demo")
+    st.toggle("Presenter mode", key="presenter", help="Larger fonts; hides settings and debug output.")
+    inject_css(ss.presenter)
 
-    st.subheader("Model")
-    st.selectbox("Model", model_options() + [OTHER_MODEL], key="set_model")
-    if st.session_state.set_model == OTHER_MODEL:
-        st.text_input("Model name", key="set_custom_model", placeholder="e.g. gpt-4.1")
-    st.slider("Temperature", 0.0, 1.0, step=0.05, key="set_temperature",
-              help="Lower = more consistent, factual answers. 0–0.2 is best for support.")
-    st.number_input("Max answer length (tokens)", min_value=50, max_value=4000, step=50, key="set_max_tokens")
-    st.slider("Conversation memory (turns)", 0, 20, key="set_history_turns",
-              help="How many earlier question/answer pairs are resent. More = better context, more tokens. "
-                   "0 = every message is answered on its own (used by the email-draft preset and the evaluation).")
-
-    with st.expander("System prompt"):
-        st.text_area("Instructions for the assistant", key="set_system_prompt", height=300)
-        st.caption("The gateway accepts no system role, so this text is placed before the first user message.")
-    with st.expander("AI disclosure (first message)"):
-        st.text_area("Shown at the start of each new conversation", key="set_ai_disclosure", height=100)
-    with st.expander("Advanced: extra gateway parameters"):
-        st.text_area("JSON object", key="set_extra_params", placeholder='{"topP": 0.9}', height=80,
-                     help="Sent as-is to the gateway, in its own parameter names (camelCase).")
-        _, extra_error = parse_extra_params()
-        if extra_error:
-            st.error(extra_error)
-
-    settings = current_settings()
-    st.caption(f"Active: **{settings.preset}** · fingerprint `{settings.fingerprint()}`")
-
-    col_a, col_b = st.columns(2)
-    col_a.button("Reset to preset", on_click=on_preset_change, use_container_width=True)
-    with col_b.popover("Save as preset", use_container_width=True):
-        st.text_input("Preset name", key="new_preset_name", placeholder="e.g. strict-short")
-        st.button("Save", on_click=on_save_preset, use_container_width=True)
-    if "save_message" in st.session_state:
-        kind, text = st.session_state.pop("save_message")
-        (st.success if kind == "success" else st.error)(text)
-
-    # ---------- sidebar: session ----------
+    settings = ui_settings.current_settings()   # widget values from the last run; the panel itself is at the bottom
+    st.markdown("**Demo scenarios**")
+    pending = None
+    for sc in load_scenarios():
+        ready = scenario_ready(sc, settings)
+        label = f"{sc['id']} · {sc['label']}" + ("" if ready else " (coming soon)")
+        if st.button(label, key=f"scenario_{sc['id']}", disabled=not ready, use_container_width=True,
+                     help=None if ready else "Needs: " + ", ".join(sc["requires"]) + " (not built or switched off yet)"):
+            pending = sc
     st.divider()
-    st.subheader("Session")
-    stats = st.session_state.stats
-    st.markdown(f"**Conversation:** `{st.session_state.conversation_id}`")
-    c1, c2 = st.columns(2)
-    c1.metric("Turns", stats["turns"])
-    c2.metric("Avg. response", f"{stats['latency'] / stats['turns']:.1f}s" if stats["turns"] else "–")
-    c1.metric("Input tokens", stats["input"])
-    c2.metric("Output tokens", stats["output"])
-    st.metric("Total tokens", stats["total"])
-    if st.button("New conversation", use_container_width=True):
-        start_conversation()
-        st.rerun()
-    st.caption("EU-hosted gateway (Sweden Central). Answers use the 3 best manual passages (raw corpus). "
-               "Turns are logged to logs/conversation_log.jsonl without customer text.")
+    st.toggle("Replay mode", key="replay_mode",
+              help="Scenarios play from demo/replays/ instead of calling the gateway. Use if the network fails.")
+    if not ss.presenter:
+        st.toggle("Record scenarios", key="record", help="Save each live scenario run to demo/replays/.")
+    st.button("Reset demo", on_click=reset_demo, use_container_width=True,
+              help="Clears the chat, the trace and the demo tickets.")
+    if not ss.presenter:
+        with st.expander("Settings", expanded=False):
+            settings = ui_settings.render_panel()
+        st.caption(f"Conversation `{ss.conversation_id}` · preset **{settings.preset}** "
+                   f"(`{settings.fingerprint()}`) · {settings.model}")
 
 
-# ---------- main ----------
-st.title("📺 Smart Tech Support")
-st.caption("Virtual assistant (AI) for Smart Tech TVs: settings and common problems.")
+# ---------- one turn ----------
+def replay_turn(sc: dict, message: str) -> TurnResult | None:
+    data = load_replay(sc["id"]) if sc else None
+    if not data:
+        return None
+    result = TurnResult(answer=data["answer"], history=ss.history + [{"role": "user", "content": message},
+                                                                     {"role": "assistant", "content": data["answer"]}],
+                        usage=data.get("usage", {}), latency_s=0.0, retrieved_ids=data["retrieved_ids"],
+                        trace=[TraceStep(**s) for s in data["trace"]])
+    if settings.tickets:
+        found = [passages()[i] for i in data["retrieved_ids"] or [] if i in passages()]
+        result.ticket_id = tickets.record_turn(ss.conversation_id, SOURCE, message, result, found, settings)
+    return result
 
-for msg in st.session_state.display:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-        if msg["meta"]:
-            st.caption(msg["meta"])
 
-user_text = st.chat_input("Describe your question or problem…")
-
-if user_text:
-    if not settings.model:
-        st.error("Type a model name in the sidebar first.")
-        st.stop()
-    if parse_extra_params()[1]:
-        st.error("Fix the extra gateway parameters in the sidebar first.")
-        st.stop()
-
-    with st.chat_message("user"):
-        st.markdown(user_text)
-
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking…"):
-            try:
-                result = run_turn(APIClient(), st.session_state.history, user_text, settings,
-                                  st.session_state.conversation_id, st.session_state.stats["turns"] + 1,
-                                  source="ui")
-            except LLMError as exc:
+def send(message: str, sc: dict | None = None) -> None:
+    result, replay_file = None, None
+    if sc and ss.replay_mode:
+        result = replay_turn(sc, message)
+        replay_file = f"demo/replays/scenario_{sc['id']}.json" if result else None
+        if result is None:
+            st.toast("No recording for this scenario yet: using the live gateway.")
+    if result is None:
+        try:
+            result = run_turn(APIClient(), ss.history, message, settings, ss.conversation_id, ss.turn + 1,
+                              source=SOURCE)
+        except LLMError as exc:
+            result = replay_turn(sc, message) if sc else None   # fallback when the gateway or network fails
+            if result is None:
                 st.error(f"The assistant could not answer: {exc}")
-                st.stop()
-        u = result.usage
-        meta = (f"{settings.preset} · {settings.model} · temp {settings.temperature} · in {u['input_tokens']} · "
-                f"out {u['output_tokens']} · total {u['total_tokens']} tokens · {result.latency_s:.1f}s")
-        st.markdown(result.answer)
-        st.caption(meta)
-
-    st.session_state.history = result.history
-    st.session_state.display += [
-        {"role": "user", "content": user_text, "meta": None},
-        {"role": "assistant", "content": result.answer, "meta": meta},
+                return
+            replay_file = f"demo/replays/scenario_{sc['id']}.json"
+            st.toast("Gateway unavailable: replaying the recorded answer.")
+        else:
+            if sc and ss.record:
+                st.toast(f"Recorded {save_replay(sc, result, settings).name}")
+    ss.turn += 1
+    ss.history = result.history
+    ss.ticket_id = result.ticket_id or ss.ticket_id
+    ss.last_trace = [vars(s) for s in result.trace]
+    ss.last_replay = replay_file
+    u = result.usage
+    ss.display += [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": result.answer, "sources": cited_ids(result.answer), "turn": ss.turn,
+         "meta": f"{u.get('input_tokens')} in · {u.get('output_tokens')} out tokens · {result.latency_s:.1f}s"
+                 + (" · replay" if replay_file else "")},
     ]
-    stats = st.session_state.stats
-    stats["turns"] += 1
-    stats["input"] += u["input_tokens"] or 0
-    stats["output"] += u["output_tokens"] or 0
-    stats["total"] += u["total_tokens"] or 0
-    stats["latency"] += result.latency_s
+
+
+if pending:
+    if pending["page"] == "email":
+        ss.preload_email = dict(pending["email"], id=f"S{pending['id']}", label=pending["label"])
+        st.switch_page("pages/1_Agent_inbox.py")
+    start_conversation()   # each scenario starts a fresh conversation, so live and replay give the same turn
+    with st.spinner("Searching the manual and answering…"):
+        send(pending["message"], pending)
     st.rerun()
+
+
+# ---------- customer (left) and agent console (right) ----------
+left, right = st.columns([3, 2], gap="large")
+
+with left:
+    st.markdown('<div class="st-pane-title">Customer</div>', unsafe_allow_html=True)
+    st.markdown('<div class="st-notice">You\'re chatting with an AI assistant</div>', unsafe_allow_html=True)
+    chat = st.container(height=560, border=False)
+    with chat:
+        for i, msg in enumerate(ss.display):
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                if msg["role"] == "assistant" and msg.get("sources"):
+                    render_sources(msg["sources"], key=f"src_{i}")
+                if msg.get("meta") and not ss.presenter:
+                    st.caption(msg["meta"])
+
+        last = ss.display[-1]
+        if last["role"] == "assistant" and last.get("turn"):
+            t = tickets.get(ss.ticket_id) if ss.ticket_id else None
+            if t and t["status"] in ("RESOLVED_BY_BOT", "HANDED_OVER"):
+                st.caption("Thanks, solved." if t["status"] == "RESOLVED_BY_BOT"
+                           else "A colleague will take over. Your conversation was passed on with a summary.")
+            else:
+                st.caption("Did this help?")
+                a, b, c, _ = st.columns([1, 1, 2, 3])
+                if a.button("👍 Yes", key=f"yes_{last['turn']}"):
+                    if ss.ticket_id:
+                        tickets.set_feedback(ss.ticket_id, True)
+                    st.rerun()
+                if b.button("👎 No", key=f"no_{last['turn']}"):
+                    if ss.ticket_id:
+                        tickets.set_feedback(ss.ticket_id, False)
+                    st.toast("Sorry about that. You can describe the problem again or ask for a person.")
+                if c.button("Talk to a person", key=f"human_{last['turn']}"):
+                    if ss.ticket_id:
+                        tickets.hand_over(ss.ticket_id, "Customer asked for a person")
+                    st.rerun()
+                if not settings.tickets and not ss.presenter:
+                    st.caption("Tickets are off in this preset: feedback is not stored.")
+
+    message = st.chat_input("Describe your question or problem…")
+    if message:
+        with st.spinner("Searching the manual and answering…"):
+            send(message)
+        st.rerun()
+
+
+@st.fragment(run_every="2s")
+def agent_console() -> None:
+    st.markdown('<div class="st-pane-title">Agent console</div>', unsafe_allow_html=True)
+    waiting = tickets.queue()
+    if not waiting:
+        st.info("No handed-over tickets. Hand-overs from the chat appear here.")
+        return
+    labels = {t["ticket_id"]: f"{t['ticket_id']} · {t['subject']} · {t['category'] or '–'} · {t['priority']}"
+              for t in waiting}
+    tid = st.radio("Queue", list(labels), format_func=labels.get, key="agent_selected")
+    t = tickets.get(tid)
+    if not t:
+        return
+    with st.container(border=True):
+        st.markdown(f"**{t['subject']}**  \n{t['category'] or 'No category'} · priority {t['priority']} · "
+                    f"{t['turns']} bot turn(s)")
+        st.markdown(f"**Hand-over reason:** {t['handover_reason'] or '–'}")
+        st.markdown("**Summary (masked)**")
+        st.text(t["summary"])
+        st.markdown("**Steps tried by the bot:** " + ("; ".join(t["steps_tried"]) or "none"))
+        render_sources(t["source_passage_ids"], key=f"agent_src_{tid}")
+
+    if st.button("✨ Suggest reply", key=f"suggest_{tid}"):
+        from email_draft import draft_reply   # agent assist: the e-mail drafter on the masked summary
+        with st.spinner("Drafting from the manual…"):
+            d = draft_reply(t["subject"], t["summary"])
+        ss.suggestions[tid] = d.draft or ("No suggestion: " + (d.triage_note or d.notes_for_agent or "not covered"))
+    if tid in ss.suggestions:
+        st.text_area("Suggested reply (agent assist)", ss.suggestions[tid], height=220, key=f"sugg_{tid}")
+    a, b = st.columns(2)
+    if a.button("Resolved by agent", key=f"resolve_{tid}", use_container_width=True):
+        tickets.update(tid, status="RESOLVED_BY_AGENT")
+        st.rerun()
+    if b.button("Escalate to tier 2", key=f"tier2_{tid}", use_container_width=True):
+        tickets.update(tid, status="TIER2")
+        st.rerun()
+
+
+with right:
+    agent_console()
+
+render_trace(ss.last_trace, ss.last_replay)

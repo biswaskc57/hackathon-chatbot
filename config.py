@@ -47,6 +47,9 @@ class Settings:
     glossary: bool = False           # add the manual's words for customer words (data/glossary.csv)
     top_k: int = 3                   # passages sent with each question
     follow_up_search: bool = True    # weak follow-ups ("still nothing") are searched with earlier messages
+    # Operational switches: they record or show things but never change an answer, so they are left out of the
+    # fingerprint (adding them did not change any earlier fingerprint).
+    tickets: bool = False            # keep one ticket per conversation in logs/tickets.jsonl (tickets.py, R6)
     preset: str = "custom"           # name only; not part of the fingerprint
 
     def __post_init__(self):
@@ -74,11 +77,13 @@ class Settings:
 
     def fingerprint(self) -> str:
         """Short id of the exact settings, so log lines and evaluation runs can be compared."""
-        raw = json.dumps(self.values(), sort_keys=True, ensure_ascii=False)
+        values = {k: v for k, v in self.values().items() if k not in NOT_IN_FINGERPRINT}
+        raw = json.dumps(values, sort_keys=True, ensure_ascii=False)
         return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
 
 
 SETTING_NAMES = [f.name for f in fields(Settings) if f.name != "preset"]
+NOT_IN_FINGERPRINT = {"tickets"}
 
 
 # What each gateway model needs to give a complete answer (tested 5 November 2026, see

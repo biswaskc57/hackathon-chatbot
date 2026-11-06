@@ -12,7 +12,8 @@
     "search_questions": false,
     "glossary": false,
     "top_k": 3,
-    "follow_up_search": true
+    "follow_up_search": true,
+    "tickets": false
   },
   "presets": {
     "baseline": {},
@@ -41,6 +42,11 @@
       "glossary": true,
       "top_k": 5,
       "follow_up_search": false
+    },
+    "demo": {
+      "search_questions": true,
+      "glossary": true,
+      "tickets": true
     }
   }
 }
