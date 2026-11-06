@@ -50,6 +50,11 @@ class Settings:
     # Operational switches: they record or show things but never change an answer, so they are left out of the
     # fingerprint (adding them did not change any earlier fingerprint).
     tickets: bool = False            # keep one ticket per conversation in logs/tickets.jsonl (tickets.py, R6)
+    # Safety modules (R2). They change answers, so they are in the fingerprint when on. When off, behaviour is the
+    # same as before they existed, so they are left out and earlier fingerprints stay valid.
+    pii_mask: bool = False           # mask personal data before the model sees it (pii.py)
+    router: bool = False             # answer | hand_over | clarify before searching (router.py)
+    menu_check: bool = False         # block answers with menu paths that are not in the manual (menu_check.py)
     preset: str = "custom"           # name only; not part of the fingerprint
 
     def __post_init__(self):
@@ -77,13 +82,15 @@ class Settings:
 
     def fingerprint(self) -> str:
         """Short id of the exact settings, so log lines and evaluation runs can be compared."""
-        values = {k: v for k, v in self.values().items() if k not in NOT_IN_FINGERPRINT}
+        values = {k: v for k, v in self.values().items()
+                  if k not in NOT_IN_FINGERPRINT and not (k in IN_FINGERPRINT_WHEN_ON and not v)}
         raw = json.dumps(values, sort_keys=True, ensure_ascii=False)
         return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:8]
 
 
 SETTING_NAMES = [f.name for f in fields(Settings) if f.name != "preset"]
 NOT_IN_FINGERPRINT = {"tickets"}
+IN_FINGERPRINT_WHEN_ON = {"pii_mask", "router", "menu_check"}
 
 
 # What each gateway model needs to give a complete answer (tested 5 November 2026, see

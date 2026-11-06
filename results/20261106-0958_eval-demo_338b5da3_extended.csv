@@ -1,0 +1,51 @@
+id,category,kind,question,answer,reference_answer,must_include,expected_behaviour,source_passage_ids,route,retrieved_ids,retrieval_hit,cited_ids,unknown_menu_paths,unknown_bold_terms,input_tokens,output_tokens,latency_s,score (correct/partly/wrong/handover),invented_content (y/n),scorer,notes
+X01,Out of scope,warranty,My TV is still under warranty. Can I get the panel replaced?,"That's a question for my human colleagues (warranty), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (warranty).,,hand_over,,hand_over,p0224|p0206|p0020,,,,,0,0,0.0,,,,
+X02,Out of scope,orders,Where is my order? I bought a TV from your web shop two weeks ago.,"That's a question for my human colleagues (orders), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (orders).,,hand_over,,hand_over,p0144|p0113|p0211,,,,,0,0,0.0,,,,
+X03,Out of scope,prices,How much does the Smart Tech 65-inch TV cost?,"That's a question for my human colleagues (prices), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (prices).,,hand_over,,hand_over,p0237|p0108|p0115,,,,,0,0,0.0,,,,
+X04,Out of scope,returns,I want to return the TV and get my money back.,"That's a question for my human colleagues (returns), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (returns).,,hand_over,,hand_over,p0037|p0012|p0122,,,,,0,0,0.0,,,,
+X05,Out of scope,repair,Can a technician come and fix my TV? There is a vertical line across the screen.,"That's a question for my human colleagues (repair), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (repair).,,hand_over,,hand_over,p0224|p0095|p0091,,,,,0,0,0.0,,,,
+X06,Out of scope,billing,I was charged twice for my TV. Please check the payment.,"That's a question for my human colleagues (account and billing), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (billing).,,hand_over,,hand_over,p0090|p0115|p0169,,,,,0,0,0.0,,,,
+X07,Out of scope,accessories,Where can I buy a spare remote control?,"That's a question for my human colleagues (prices), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (accessories).,,hand_over,,hand_over,p0160|p0219|p0006,,,,,0,0,0.0,,,,
+X08,Out of scope,safety/repair,There is a burning smell coming from the back of the TV.,"That's a question for my human colleagues (repair), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (safety/repair).,,hand_over,,hand_over,p0013|p0150|p0148,,,,,0,0,0.0,,,,
+X09,Out of scope,repair,The screen cracked when my son threw a toy at it. Is that covered?,"That's a question for my human colleagues (repair), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (repair).,,hand_over,,hand_over,p0020|p0118|p0150,,,,,0,0,0.0,,,,
+X10,Out of scope,account,Can you change the e-mail address of my Smart Tech customer account?,"The manual does not provide instructions for changing the email address of a Smart Tech account. To update account information, you must log in to your Smart Tech account, but the specific steps for changing the email address are not mentioned. 
+
+I recommend visiting the Smart Tech Accounts website (http://account.smarttech-inc.example) or contacting a human colleague for further assistance. Would you like me to connect you with a human agent?",Hand over to a human colleague (account).,,hand_over,,answer,p0115|p0038|p0114,,,,,1344,84,1.91,,,,
+X11,Out of scope,warranty (German),Ist meine Garantie noch gültig? Der Fernseher ist acht Monate alt.,"That's a question for my human colleagues (warranty), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (warranty (German)).,,hand_over,,hand_over,p0104|p0206|p0046,,,,,0,0,0.0,,,,
+X12,Out of scope,repair (trap p0138),How do I request support through the TV menu so someone repairs it?,"That's a question for my human colleagues (repair), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (repair (trap p0138)).,,hand_over,,hand_over,p0247|p0138|p0095,,,,,0,0,0.0,,,,
+X13,Out of scope,warranty (trap p0020),Is screen damage from watching in 4:3 covered by the warranty?,"That's a question for my human colleagues (warranty), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",Hand over to a human colleague (warranty (trap p0020)).,,hand_over,,hand_over,p0020|p0244|p0085,,,,,0,0,0.0,,,,
+X14,Unclear,unclear,help,"I'd like to help. Could you tell me a bit more: what are you trying to do on the TV, or what do you see on the screen?",Ask one clarifying question.,,clarify,,clarify,p0016|p0191|p0199,,,,,0,0,0.0,,,,
+X15,Unclear,unclear,tv broken,"I'd like to help. Could you tell me a bit more: what are you trying to do on the TV, or what do you see on the screen?",Ask one clarifying question.,,clarify,,clarify,p0069|p0005|p0126,,,,,0,0,0.0,,,,
+X16,Unclear,unclear,It doesn't work,"Your message is too general for me to assist effectively. Could you provide more details about what is not working (e.g., picture, sound, network, remote, apps, or power)? If you're unsure, I can connect you with a human colleague for further assistance.",Ask one clarifying question.,,clarify,,answer,p0191|p0118|p0041,,,,,653,54,1.33,,,,
+X17,Unclear,unclear,hello?,"I'd like to help. Could you tell me a bit more: what are you trying to do on the TV, or what do you see on the screen?",Ask one clarifying question.,,clarify,,clarify,,,,,,0,0,0.0,,,,
+X18,"Power, Setup & Viewing",how-to,How do I return to the Home Screen?,"To return to the Home Screen, press the **Home Screen button** on your Smart Tech Remote. 
+
+For more details, refer to [p0216] or [p0217], depending on your TV model.",Press the Home button.,,answer,p0068,answer,p0216|p0217|p0026,n,p0216|p0217,,,1975,44,2.04,,,,
+X19,"Power, Setup & Viewing",how-to,How do I change the order of channels in my favourites list?,"To change the order of channels in your favorites list, follow these steps:
+
+1. Open the Channel List by pressing the appropriate button on your remote.
+2. Navigate to **Favorites** and select the desired favorites list (e.g., Favorites 1, Favorites 2, etc.).
+3. Select **Edit Favorites** to open the Edit Favorites screen.
+4. Choose one or more channels you want to rearrange.
+5. Select **Change order**. The **Change order** highlight will appear.
+6. Use the up/down directional buttons to move the channels to the desired location.
+7. Press the **Select** button to confirm the new order.
+
+Reference: [p0144], [p0098]",Edit or rearrange the favorites list.,,answer,p0098|p0144,answer,p0144|p0064|p0098,y,p0144|p0098,,,850,144,3.17,,,,
+X20,"Network, Apps & Software",how-to,Can I download and install apps on my Smart Tech TV?,"Yes, you can download and install apps on your Smart Tech TV. Here are the steps:
+
+1. Ensure your TV is connected to the Internet.
+2. Open **Smart Tech Hub** on your TV. When launched for the first time, default apps are automatically installed (these may vary by region).
+3. Use the **App Search** feature in Smart Tech Hub to find the app you want.
+4. Select the app and follow the on-screen instructions to download and install it.
+
+For managing installed apps, go to **APPS > Settings**.
+
+If you encounter any issues, let me know! [p0017]",Use the APPS service.,,answer,p0017,answer,p0017|p0232|p0130,y,p0017,,,1008,127,2.5,,,,
+X21,"Network, Apps & Software",how-to,How do I check if a software update is available?,"To check if a software update is available for your Smart Tech TV, follow these steps:
+
+1. Go to **Settings > Support > Software Update > Update Now**.
+2. The TV will check for updates. If an update is available, follow the on-screen instructions to install it. Do not turn off the TV until the update is complete and the TV restarts automatically.
+
+For more details, refer to [p0177].",Settings > Support > Software Update > Update Now.,,answer,p0177|p0233,answer,p0233|p0177|p0245,y,p0177,,,1020,87,2.51,,,,
+X22,Picture & Sound,troubleshooting,The picture is cut off at the edges.,"The manual passages provided do not address the issue of the picture being cut off at the edges. This could be related to the aspect ratio or zoom settings, but I cannot confirm the exact steps to resolve it. I recommend contacting a human colleague for further assistance. Would you like me to connect you to them?",Fit to Screen / picture size settings.,,answer,p0019|p0118,answer,p0087|p0223|p0225,n,,,,1469,62,2.24,,,,

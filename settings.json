@@ -13,7 +13,10 @@
     "glossary": false,
     "top_k": 3,
     "follow_up_search": true,
-    "tickets": false
+    "tickets": false,
+    "pii_mask": false,
+    "router": false,
+    "menu_check": false
   },
   "presets": {
     "baseline": {},
@@ -46,7 +49,19 @@
     "demo": {
       "search_questions": true,
       "glossary": true,
-      "tickets": true
+      "tickets": true,
+      "pii_mask": true,
+      "router": true,
+      "menu_check": true
+    },
+    "demo-no-manual": {
+      "search_questions": true,
+      "glossary": true,
+      "tickets": true,
+      "pii_mask": true,
+      "router": true,
+      "menu_check": true,
+      "use_manual": false
     }
   }
 }

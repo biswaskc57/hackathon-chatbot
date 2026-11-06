@@ -60,14 +60,15 @@ def eval_settings(preset: str = "baseline"):
         max_tokens=800,
         history_turns=0,
         system_prompt=base.system_prompt + COMPLETE_ANSWER_ADDENDUM,
+        tickets=False,   # the evaluation never writes demo tickets
         preset=f"eval-{preset}",
     )
 
 
 # ---------- test questions ----------
 def load_questions(test_set: str) -> list[dict]:
-    if test_set == "golden":
-        with open(DATA / "golden_seed.csv", encoding="utf-8") as f:
+    if test_set in ("golden", "extended"):   # extended: our own set (out of scope, unclear, tricky in scope)
+        with open(DATA / ("golden_seed.csv" if test_set == "golden" else "extended_set.csv"), encoding="utf-8") as f:
             return [{
                 "id": r["question_id"], "question": r["question"],
                 "category": r["category"], "kind": r["kind"],
@@ -116,7 +117,7 @@ def unknown_bold_terms(answer: str, corpus_text: str) -> list[str]:
 COLUMNS = [
     "id", "category", "kind", "question", "answer",
     "reference_answer", "must_include", "expected_behaviour", "source_passage_ids",
-    "retrieved_ids", "retrieval_hit", "cited_ids",
+    "route", "retrieved_ids", "retrieval_hit", "cited_ids",
     "unknown_menu_paths", "unknown_bold_terms", "input_tokens", "output_tokens", "latency_s",
     # filled in by hand when scoring:
     "score (correct/partly/wrong/handover)", "invented_content (y/n)", "scorer", "notes",
@@ -128,7 +129,7 @@ def main() -> None:
     parser.add_argument("--preset", default="baseline", help="preset from settings.json (default: baseline)")
     parser.add_argument("--corpus", choices=list(CORPUS_STEPS),
                         help="override the preset's search (step 1/2/3 of the corpus comparison)")
-    parser.add_argument("--set", choices=["golden", "tickets"], default="golden")
+    parser.add_argument("--set", choices=["golden", "extended", "tickets"], default="golden")
     parser.add_argument("--limit", type=int, help="only the first N questions (for a quick try)")
     parser.add_argument("--dry-run", action="store_true", help="no model call, no credentials needed")
     parser.add_argument("--model", help="compare another model; changes the fingerprint (default: the baseline model)")
@@ -198,15 +199,16 @@ def main() -> None:
             except LLMError as exc:
                 print(f"\nStopped at {q['id']}: {exc}\n{i - 1} answers saved in {out_file}")
                 sys.exit(1)
-            gold = set(q["source_passage_ids"].split("|"))
+            gold = set(filter(None, q["source_passage_ids"].split("|")))
             retrieved = [p.id for p in passages]
             row = {
                 **{k: q[k] for k in ("id", "category", "kind", "question", "reference_answer",
                                      "must_include", "expected_behaviour")},
                 "source_passage_ids": sorted(gold),
                 "answer": result.answer,
+                "route": result.route,
                 "retrieved_ids": retrieved,
-                "retrieval_hit": bool(gold & set(retrieved)) if index else None,
+                "retrieval_hit": bool(gold & set(retrieved)) if index and gold else None,
                 "cited_ids": list(dict.fromkeys(CITATION.findall(result.answer))),
                 "unknown_menu_paths": unknown_menu_paths(result.answer, corpus_text),
                 "unknown_bold_terms": unknown_bold_terms(result.answer, corpus_text),

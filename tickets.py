@@ -3,9 +3,8 @@
 assistant.run_turn() creates and updates the ticket when settings.tickets is on; the demo UI changes its status
 ("Did this help?", hand-over, agent actions). Stored in logs/tickets.jsonl (git-ignored), one ticket per line.
 
-Only masked text is stored: the summary is the customer's first message with e-mail addresses, phone, serial and
-order numbers replaced (the regexes from email_draft.py), cut to 300 characters. Names are not masked yet: that
-comes with pii.py (R2).
+Only masked text is stored: the summary is the customer's first message masked with pii.py (e-mail addresses,
+phone, serial and order numbers, addresses, introduced names), cut to 300 characters.
 
 Status: BOT_ACTIVE -> RESOLVED_BY_BOT | HANDED_OVER -> RESOLVED_BY_AGENT | TIER2. ABANDONED = outcome unknown,
 never counted as resolved. A bot hand-over and a tier-2 escalation are separate steps.
@@ -28,15 +27,9 @@ def now() -> str:
 
 
 def mask(text: str) -> tuple[str, list[str]]:
-    """Replace e-mail addresses, serial, order and phone numbers. Returns (masked text, labels of what was masked)."""
-    from email_draft import EMAIL_ADDR, ORDER, PHONE, SERIAL
-    found = []
-    for pattern, label in ((EMAIL_ADDR, "[e-mail address]"), (SERIAL, "[serial number]"),
-                           (ORDER, "[order number]"), (PHONE, "[phone number]")):
-        if pattern.search(text):
-            found.append(label.strip("[]"))
-            text = pattern.sub(label, text)
-    return text, found
+    """Mask personal data (pii.py). Always applied to the stored summary, whatever settings.pii_mask says."""
+    import pii
+    return pii.mask(text)
 
 
 # ---------- storage ----------
@@ -81,7 +74,8 @@ def record_turn(conversation_id: str, source: str, user_text: str, result, passa
         t = store[tid] = {
             "ticket_id": tid, "created": now(), "channel": "chat", "source": source, "model_series": "",
             "category": top.category if top else "", "type": "", "priority": "medium",
-            "subject": top.title if top else "Question without a matching manual passage",
+            "subject": top.title if top else ("Answer blocked: menu not in the manual" if "menu path" in result.handover_reason
+                                              else "Question without a matching manual passage"),
             "summary": summary[:SUMMARY_CHARS], "steps_tried": [], "source_passage_ids": [],
             "status": "BOT_ACTIVE", "route": "answer", "bot_confidence": None, "turns": 0, "tokens": 0,
             "cost_eur": None,   # computed in the evaluation from the token log, never shown in the demo
@@ -89,6 +83,12 @@ def record_turn(conversation_id: str, source: str, user_text: str, result, passa
             "preset": settings.preset, "settings_fingerprint": settings.fingerprint(),
             "handover_reason": "", "updated": now(),
         }
+    if result.route == "hand_over" and t["status"] == "BOT_ACTIVE":
+        t.update(status="HANDED_OVER", route="hand_over", handover_reason=result.handover_reason)
+        if result.route_category:   # out of scope: the router's category, not a manual category
+            t.update(category="Out of scope", type="out of scope", subject=f"{result.route_category} request")
+    elif t["status"] == "BOT_ACTIVE":
+        t["route"] = result.route
     t["turns"] += 1
     t["tokens"] += result.usage.get("total_tokens") or 0
     for p in used:
