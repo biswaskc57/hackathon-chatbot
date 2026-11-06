@@ -2,22 +2,26 @@
   "scenario": "2",
   "label": "Catches a mistake",
   "message": "Scheduled recording did not start. I scheduled a recording of a film but nothing was recorded. I had a USB stick connected. What went wrong?",
-  "answer": "The issue might be related to the type of USB storage or other settings. Here are some checks you can perform:\n\n1. **USB Storage**: A USB stick is not supported for recording. You need to connect a USB hard drive with at least 100 MB of free space. [p0203]\n\n2. **Signal Strength**: Check the signal strength in **Settings > Support > Self Diagnosis > Signal Information**. A weak signal can prevent recording. [p0203]\n\n3. **Clock Settings**: Ensure the clock is set correctly in **Settings > General > System Manager > Time > Clock**. [p0203], [p0128]\n\nPlease try these steps and let me know if they resolve the issue. If the problem persists, I recommend contacting a human colleague for further assistance.",
+  "answer": "The issue might be related to the type of USB storage or other settings. Please follow these steps to troubleshoot:\n\n1. **Check USB Storage**: A USB stick is not supported for recording. You need to connect a USB hard drive with at least 100 MB of free space. [p0203]\n\n2. **Check Signal Strength**: Go to **Settings > Support > Self Diagnosis > Signal Information** and ensure the signal strength is sufficient. A weak signal can stop a recording. [p0203]\n\n3. **Check the Clock**: Ensure the TV clock is set correctly in **Settings > General > System Manager > Time > Clock**. An incorrect clock can prevent scheduled recordings. [p0203], [p0102]\n\nPlease try these steps and let me know if they resolve the issue. If the problem persists and your model supports recording, I can connect you with a human colleague for further assistance.",
   "retrieved_ids": [
     "p0203",
     "p0102",
     "p0128"
   ],
+  "route": "answer",
+  "route_category": "",
+  "handover_reason": "",
+  "masked_message": "Scheduled recording did not start. I scheduled a recording of a film but nothing was recorded. I had a USB stick connected. What went wrong?",
   "trace": [
     {
       "name": "PII masked",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "No personal data found"
     },
     {
       "name": "Router",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "In scope: TV how-to or troubleshooting"
     },
     {
       "name": "Search",
@@ -27,21 +31,21 @@
     {
       "name": "Gate",
       "status": "off",
-      "reason": "Not built yet"
+      "reason": "Not built yet: planned evidence gate"
     },
     {
       "name": "Menu paths",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "2 path(s), all in the manual"
     }
   ],
   "usage": {
     "input_tokens": 1346,
-    "output_tokens": 164,
-    "total_tokens": 1510
+    "output_tokens": 187,
+    "total_tokens": 1533
   },
   "preset": "demo",
-  "settings_fingerprint": "81e156eb",
+  "settings_fingerprint": "76d194d8",
   "model": "gpt-4o",
-  "recorded": "2026-11-05T14:24:26+00:00"
+  "recorded": "2026-11-06T10:01:52+00:00"
 }

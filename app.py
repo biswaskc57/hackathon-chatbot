@@ -79,6 +79,11 @@ with st.sidebar:
 
 
 # ---------- one turn ----------
+def turn_settings(sc: dict | None):
+    """A scenario may run with its own preset (scenario 4: the stress test with the manual switched off)."""
+    return load_settings(sc["preset"]) if sc and sc.get("preset") else settings
+
+
 def replay_turn(sc: dict, message: str) -> TurnResult | None:
     data = load_replay(sc["id"]) if sc else None
     if not data:
@@ -86,10 +91,13 @@ def replay_turn(sc: dict, message: str) -> TurnResult | None:
     result = TurnResult(answer=data["answer"], history=ss.history + [{"role": "user", "content": message},
                                                                      {"role": "assistant", "content": data["answer"]}],
                         usage=data.get("usage", {}), latency_s=0.0, retrieved_ids=data["retrieved_ids"],
-                        trace=[TraceStep(**s) for s in data["trace"]])
-    if settings.tickets:
+                        trace=[TraceStep(**s) for s in data["trace"]], route=data.get("route", "answer"),
+                        route_category=data.get("route_category", ""), handover_reason=data.get("handover_reason", ""))
+    s_turn = turn_settings(sc)
+    if s_turn.tickets:
         found = [passages()[i] for i in data["retrieved_ids"] or [] if i in passages()]
-        result.ticket_id = tickets.record_turn(ss.conversation_id, SOURCE, message, result, found, settings)
+        masked = data.get("masked_message", message)   # the ticket stores the masked text, as in a live run
+        result.ticket_id = tickets.record_turn(ss.conversation_id, SOURCE, masked, result, found, s_turn)
     return result
 
 
@@ -102,8 +110,8 @@ def send(message: str, sc: dict | None = None) -> None:
             st.toast("No recording for this scenario yet: using the live gateway.")
     if result is None:
         try:
-            result = run_turn(APIClient(), ss.history, message, settings, ss.conversation_id, ss.turn + 1,
-                              source=SOURCE)
+            result = run_turn(APIClient(), ss.history, message, turn_settings(sc), ss.conversation_id,
+                              ss.turn + 1, source=SOURCE)
         except LLMError as exc:
             result = replay_turn(sc, message) if sc else None   # fallback when the gateway or network fails
             if result is None:
@@ -113,7 +121,7 @@ def send(message: str, sc: dict | None = None) -> None:
             st.toast("Gateway unavailable: replaying the recorded answer.")
         else:
             if sc and ss.record:
-                st.toast(f"Recorded {save_replay(sc, result, settings).name}")
+                st.toast(f"Recorded {save_replay(sc, result, turn_settings(sc)).name}")
     ss.turn += 1
     ss.history = result.history
     ss.ticket_id = result.ticket_id or ss.ticket_id
@@ -123,6 +131,7 @@ def send(message: str, sc: dict | None = None) -> None:
     ss.display += [
         {"role": "user", "content": message},
         {"role": "assistant", "content": result.answer, "sources": cited_ids(result.answer), "turn": ss.turn,
+         "note": sc.get("note") if sc else None,
          "meta": f"{u.get('input_tokens')} in · {u.get('output_tokens')} out tokens · {result.latency_s:.1f}s"
                  + (" · replay" if replay_file else "")},
     ]
@@ -144,13 +153,15 @@ left, right = st.columns([3, 2], gap="large")
 with left:
     st.markdown('<div class="st-pane-title">Customer</div>', unsafe_allow_html=True)
     st.markdown('<div class="st-notice">You\'re chatting with an AI assistant</div>', unsafe_allow_html=True)
-    chat = st.container(height=560, border=False)
+    chat = st.container(height=400 if ss.presenter else 460, border=False)   # leaves room for the trace strip at 1080p
     with chat:
         for i, msg in enumerate(ss.display):
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
                 if msg["role"] == "assistant" and msg.get("sources"):
                     render_sources(msg["sources"], key=f"src_{i}")
+                if msg.get("note"):
+                    st.caption("🧪 " + msg["note"])
                 if msg.get("meta") and not ss.presenter:
                     st.caption(msg["meta"])
 

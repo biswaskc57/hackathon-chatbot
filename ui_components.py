@@ -30,6 +30,7 @@ def inject_css(presenter: bool) -> None:
     st.markdown(f"""<style>
     html, body, [data-testid="stMarkdownContainer"] p, [data-testid="stMarkdownContainer"] li {{ font-size: {base}px; }}
     [data-testid="stChatMessage"] {{ padding: 0.6rem 0.9rem; border-radius: 12px; }}
+    .block-container {{ padding-top: 2.2rem; padding-bottom: 0.5rem; }}
     .st-notice {{ background: {ACCENT}; color: #fff; padding: 0.45rem 0.9rem; border-radius: 8px;
                   font-weight: 600; font-size: {base - 2}px; margin-bottom: 0.6rem; }}
     .st-pane-title {{ font-size: {base + 4}px; font-weight: 700; margin: 0 0 0.3rem 0; }}
@@ -117,7 +118,9 @@ def save_replay(scenario: dict, result, settings) -> Path:
     path = replay_path(scenario["id"])
     path.write_text(json.dumps({
         "scenario": scenario["id"], "label": scenario["label"], "message": scenario["message"],
-        "answer": result.answer, "retrieved_ids": result.retrieved_ids,
+        "answer": result.answer, "retrieved_ids": result.retrieved_ids, "route": result.route,
+        "route_category": result.route_category, "handover_reason": result.handover_reason,
+        "masked_message": result.history[-2]["content"] if len(result.history) >= 2 else scenario["message"],
         "trace": [vars(s) for s in result.trace], "usage": {k: v for k, v in result.usage.items() if k != "raw_usage"},
         "preset": settings.preset, "settings_fingerprint": settings.fingerprint(), "model": settings.model,
         "recorded": datetime.now(timezone.utc).isoformat(timespec="seconds"),

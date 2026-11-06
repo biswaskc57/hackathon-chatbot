@@ -2,22 +2,26 @@
   "scenario": "1",
   "label": "How-to with sources",
   "message": "Which picture mode is easiest on the eyes?",
-  "answer": "The \"Natural\" picture mode is designed to reduce eye strain for a comfortable viewing experience. You can select it by going to:\n\n**Settings > Picture > Picture Mode > Natural**  \n\nThis function may not be supported depending on your TV model. [p0001]",
+  "answer": "The picture mode that reduces eye strain for a comfortable viewing experience is **Natural**. You can select it by going to:\n\n**Settings > Picture > Picture Mode > Natural**  \n\nThis mode is designed to be easier on the eyes. [p0001]",
   "retrieved_ids": [
     "p0046",
     "p0001",
     "p0226"
   ],
+  "route": "answer",
+  "route_category": "",
+  "handover_reason": "",
+  "masked_message": "Which picture mode is easiest on the eyes?",
   "trace": [
     {
       "name": "PII masked",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "No personal data found"
     },
     {
       "name": "Router",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "In scope: TV how-to or troubleshooting"
     },
     {
       "name": "Search",
@@ -27,21 +31,21 @@
     {
       "name": "Gate",
       "status": "off",
-      "reason": "Not built yet"
+      "reason": "Not built yet: planned evidence gate"
     },
     {
       "name": "Menu paths",
-      "status": "off",
-      "reason": "Not built yet"
+      "status": "passed",
+      "reason": "1 path(s), all in the manual"
     }
   ],
   "usage": {
     "input_tokens": 943,
-    "output_tokens": 54,
-    "total_tokens": 997
+    "output_tokens": 52,
+    "total_tokens": 995
   },
   "preset": "demo",
-  "settings_fingerprint": "81e156eb",
+  "settings_fingerprint": "76d194d8",
   "model": "gpt-4o",
-  "recorded": "2026-11-05T14:24:41+00:00"
+  "recorded": "2026-11-06T10:01:37+00:00"
 }

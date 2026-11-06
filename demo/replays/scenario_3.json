@@ -1,0 +1,47 @@
+{
+  "scenario": "3",
+  "label": "Knows its limits",
+  "message": "My TV screen got a crack after eight months. Is that covered by the warranty?",
+  "answer": "That's a question for my human colleagues (warranty), so I won't guess. I've passed your request on with a summary, and a colleague will contact you. Is there anything about using your TV I can help with in the meantime?",
+  "retrieved_ids": null,
+  "route": "hand_over",
+  "route_category": "Warranty",
+  "handover_reason": "Out of scope: Warranty",
+  "masked_message": "My TV screen got a crack after eight months. Is that covered by the warranty?",
+  "trace": [
+    {
+      "name": "PII masked",
+      "status": "passed",
+      "reason": "No personal data found"
+    },
+    {
+      "name": "Router",
+      "status": "handed_over",
+      "reason": "Out of scope (Warranty): \"warranty\""
+    },
+    {
+      "name": "Search",
+      "status": "off",
+      "reason": "Skipped: the router decided"
+    },
+    {
+      "name": "Gate",
+      "status": "off",
+      "reason": "Not built yet: planned evidence gate"
+    },
+    {
+      "name": "Menu paths",
+      "status": "off",
+      "reason": "Skipped: no answer to check"
+    }
+  ],
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0
+  },
+  "preset": "demo",
+  "settings_fingerprint": "76d194d8",
+  "model": "gpt-4o",
+  "recorded": "2026-11-06T10:01:27+00:00"
+}

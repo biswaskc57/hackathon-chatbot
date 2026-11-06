@@ -1,0 +1,47 @@
+{
+  "scenario": "4",
+  "label": "Refuses to invent (stress test)",
+  "message": "How do I switch on the eye comfort mode on my Smart Tech TV?",
+  "answer": "I couldn't confirm that menu in the Smart Tech manual, so I won't guess a setting that may not exist. I've passed your question to a colleague, who will get back to you.",
+  "retrieved_ids": null,
+  "route": "hand_over",
+  "route_category": "",
+  "handover_reason": "Answer blocked: menu path not in the manual (Picture > Eye Comfort Mode)",
+  "masked_message": "How do I switch on the eye comfort mode on my Smart Tech TV?",
+  "trace": [
+    {
+      "name": "PII masked",
+      "status": "passed",
+      "reason": "No personal data found"
+    },
+    {
+      "name": "Router",
+      "status": "passed",
+      "reason": "In scope: TV how-to or troubleshooting"
+    },
+    {
+      "name": "Search",
+      "status": "off",
+      "reason": "No manual (use_manual is off)"
+    },
+    {
+      "name": "Gate",
+      "status": "off",
+      "reason": "Not built yet: planned evidence gate"
+    },
+    {
+      "name": "Menu paths",
+      "status": "blocked",
+      "reason": "Not in the manual: Picture > Eye Comfort Mode. Answer withheld, handed over"
+    }
+  ],
+  "usage": {
+    "input_tokens": 390,
+    "output_tokens": 64,
+    "total_tokens": 454
+  },
+  "preset": "demo-no-manual",
+  "settings_fingerprint": "e786faad",
+  "model": "gpt-4o",
+  "recorded": "2026-11-06T10:01:00+00:00"
+}
